@@ -88,7 +88,7 @@
             <p style="line-height: 2.5; width: 400px">
                 <span style="font-size: 30px">18-24 years old:</span>
                 <p style="line-height: 2.5; width: 400px">
-                    The average annual salary for programmers in this age group is
+                    As can be seen from the waterfall chart on the left, the average annual salary for programmers in this age group is
                     <span style="font-size: 30px; color: steelblue">$88,368</span>,
                     making it one of the lower figures among all age ranges.
                     This group is typically at the early stage of their careers,
@@ -156,6 +156,23 @@
             </p>
         </div>
     </div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip" style="
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+    white-space: nowrap;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);">
 </div>
 
 <!-- Rolling trigger (hidden) -->
@@ -288,7 +305,31 @@
             .attr("y", function(d) { return yScale( Math.max(d.start, d.end) ); })
             .attr("width", xScale.bandwidth())
             .attr("height", function(d) { return Math.abs( yScale(d.start) - yScale(d.end) ); })
-            .style("opacity", 0); // hide
+            .style("opacity", 0) // hide
+            /* add mouse over tooltip */
+            .on("mouseover", function(event, d) {
+                    const changeText = d.start === 0 || d.class === "final"
+                        ? "" // 如果是第一个或最后一个柱子，不显示变化
+                        : (d.value >= 0 ? "+" : "") + dollarFormatter(d.value);
+
+                    d3.select("#tooltip")
+                        .style("opacity", 1)
+                        .html(`
+                        <strong>Age Group:</strong> ${d.name}<br>
+                        <strong>Average annual salary:</strong> ${dollarFormatter2(d.end)}<br>
+                        ${changeText ? `<strong>Change from Previous:</strong> ${changeText} 💰` : ""}
+                    `)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 30) + "px");
+                })
+            .on("mousemove", function(event) {
+                d3.select("#tooltip")
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 30) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select("#tooltip").style("opacity", 0);
+            });
 
 
         // add money label
@@ -335,6 +376,13 @@
             result = Math.round(n/1000) + 'K';
         }
         return '$' + result;
+    }
+
+    function dollarFormatter2(n) {
+        const isNegative = n < 0;
+        const absValue = Math.abs(Math.round(n));
+        const formattedNumber = absValue.toLocaleString(); // Automatic comma addition
+        return (isNegative ? "-$" : "$") + formattedNumber;
     }
 
     function initScrollInteraction(data) {

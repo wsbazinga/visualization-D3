@@ -39,7 +39,7 @@
         .card {
             height: 666px;
             width: 90%;
-            margin: 20px auto;
+            margin: 40px auto;
             background-color: lightgrey;
             border-radius: 10px;
             /*transform: translateY(100px);
@@ -147,21 +147,22 @@
             </p>
 
             <div id="bar_and_line_description_1" class="description-box show">
-                <p style="color: white; font-size: 16px; padding-left: 20px;">
-                    At this stage, male programmers greatly outnumber females—by a factor of
-                    <span style="color: #6995b3; font-size: 30px">17.51%</span>.
+                <p style="color: white; font-size: 16px; padding-left: 20px; ">
+                    As shown in the bar chart: at this stage, male programmers greatly outnumber females—by a factor of
+                    <span style="color: #6995b3; font-size: 30px">17.51%</span>.</br>
                     The red bars look tiny compared to the towering blue.
                 </p>
 
                 <p style="color: white; font-size: 16px; padding-left: 20px;">
                     Yet surprisingly, despite being fewer in number,
-                    <span style="color: #b36998; font-size: 20px">female programmers earn slightly more on average</span>.
+                    <span style="color: #b36998; font-size: 20px">female programmers earn slightly more on average</span>,
+                    as can be seen from the line chart.
                 </p>
             </div>
 
             <div id="bar_and_line_description_2" style="display: none" class="description-box hide">
                 <p style="color: white; font-size: 16px; padding-left: 20px;">
-                    The number of employed programmers drops sharply: a
+                    The number of employed programmers drops sharply, as seen from the changes in the bar chart: a
                     <span style="color: #6995b3; font-size: 30px">48%</span> decrease
                     for <span style="color: #6995b3; font-size: 30px">men</span>
                     and a staggering <span style="color: #b36998; font-size: 30px">66%</span> for
@@ -171,7 +172,7 @@
                 <p style="color: white; font-size: 16px; padding-left: 20px;">
                     Though salaries rise overall,
                     <span style="color: #b36998; font-size: 20px">the slight edge women once held disappears</span>,
-                    replaced by a noticeable gap.
+                    replaced by a noticeable gap, as can be seen from the changes in the line chart.
                 </p>
             </div>
 
@@ -194,7 +195,7 @@
             <!-- The text in the middle -->
             <div class="middle-text">
                 <div id="before_35" class="description-box show">
-                    <p>But the unemployment data paints a heavier picture.</p>
+                    <p style="line-height: 2.5;">But the unemployment data, as shown in the pie chart, paints a heavier picture.</p>
                     <p>Both genders face nearly
                         <span style="font-size: 30px; font-weight: bold">50%</span> unemployment before 35, with
                         <span style="color: #b36998; font-size: 30px">women</span> reaching a high of
@@ -296,569 +297,643 @@
         </div>
     </div>
 
+    <!-- Tooltip for chart(bar and line) -->
+    <div id="tooltip" style="
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+    white-space: nowrap;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);">
+    </div>
 
 
-<script>
-    const margin = { top: 20, right: 30, bottom: 50, left: 60 };
 
-    // Set the SVG and scale
-    const svg = d3.select("#barAndLine"),
-        // Internal bar chart, up, down, left and right, and the distance from svg
-        width = +svg.attr("width") - margin.left - margin.right - 25,
-        height = +svg.attr("height") - margin.top - margin.bottom;
+    <script>
+        const margin = { top: 20, right: 30, bottom: 50, left: 60 };
 
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        // Set the SVG and scale
+        const svg = d3.select("#barAndLine"),
+            // Internal bar chart, up, down, left and right, and the distance from svg
+            width = +svg.attr("width") - margin.left - margin.right - 25,
+            height = +svg.attr("height") - margin.top - margin.bottom;
 
-    // Scale of the X and Y axes
-    // Map the category data to a bandwidth range
-    const x = d3.scaleBand()
-        .domain(["Man", "Woman"])
-        .range([0, width])
-        // Leave 60% of the space between each column instead of letting them be close to each other.
-        .padding(0.6);
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Left Y-axis: Number of people (in ten thousand)
-    const y = d3.scaleLinear()
-        .range([height, 0])
-        .domain([0, 50000]);
+        // Scale of the X and Y axes
+        // Map the category data to a bandwidth range
+        const x = d3.scaleBand()
+            .domain(["Man", "Woman"])
+            .range([0, width])
+            // Leave 60% of the space between each column instead of letting them be close to each other.
+            .padding(0.6);
 
-    // Right Y-axis: Average salary (unit: year)
-    const ySalary = d3.scaleLinear()
-        .range([height, 0])
-        .domain([0, 100000]);
+        // Left Y-axis: Number of people (in ten thousand)
+        const y = d3.scaleLinear()
+            .range([height, 0])
+            .domain([0, 50000]);
 
-    const yAxisRight = g.append("g")
-        .attr("class", "y axis right")
-        .attr("transform", `translate(${width},0)`)
-        .call(d3.axisRight(ySalary));
+        // Right Y-axis: Average salary (unit: year)
+        const ySalary = d3.scaleLinear()
+            .range([height, 0])
+            .domain([0, 100000]);
 
-    // Line graph: Define a linear gradient
-    svg.append("defs").append("linearGradient")
-        .attr("id", "line-gradient")
-        .attr("x1", "0%").attr("y1", "0%")
-        .attr("x2", "100%").attr("y2", "0%")
-        .selectAll("stop")
-        .data([
-            { offset: "0%", color: "#1b72ad" },
-            { offset: "100%", color: "#b36998" }
-        ])
-        .enter().append("stop")
-        .attr("offset", d => d.offset)
-        .attr("stop-color", d => d.color);
+        const yAxisRight = g.append("g")
+            .attr("class", "y axis right")
+            .attr("transform", `translate(${width},0)`)
+            .call(d3.axisRight(ySalary));
 
-
-    // add x-axis
-    g.append("g")
-        .attr("class", "x axis")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x));
-
-    // add y-axis on the left
-    const yAxis = g.append("g")
-        .attr("class", "y axis")
-        .call(d3.axisLeft(y));
-        //.style("display", "none");
-
-    // Initial data (simulated data)
-    let currentData = [
-        { gender: "Man", count: 0 },
-        { gender: "Woman", count: 0 }
-    ];
-
-    // create bar chart
-    let bars = g.selectAll(".bar")
-        .data(currentData)
-        .enter()
-        .append("rect")
-        .attr("class", d => `bar ${d.gender.toLowerCase()}`)
-        .attr("x", d => x(d.gender))
-        .attr("y", d => y(d.count))
-        .attr("width", x.bandwidth())
-        .attr("height", d => height - y(d.count))
-        .attr("fill", d => d.gender === "Man" ? "steelblue" : "red");
+        // Line graph: Define a linear gradient
+        svg.append("defs").append("linearGradient")
+            .attr("id", "line-gradient")
+            .attr("x1", "0%").attr("y1", "0%")
+            .attr("x2", "100%").attr("y2", "0%")
+            .selectAll("stop")
+            .data([
+                { offset: "0%", color: "#1b72ad" },
+                { offset: "100%", color: "#b36998" }
+            ])
+            .enter().append("stop")
+            .attr("offset", d => d.offset)
+            .attr("stop-color", d => d.color);
 
 
-    // Handmade legend
-    svg.append("circle").attr("cx",400).attr("cy",30).attr("r", 6).style("fill", "#6995b3")
-    svg.append("circle").attr("cx",400).attr("cy",60).attr("r", 6).style("fill", "#b36998")
-    svg.append("text").attr("x", 420).attr("y", 30)
-        .text("man").style("font-size", "15px").attr("alignment-baseline","middle").style("fill", "#fff")
-    svg.append("text").attr("x", 420).attr("y", 60)
-        .text("woman").style("font-size", "15px").attr("alignment-baseline","middle").style("fill", "#fff")
+        // add x-axis
+        g.append("g")
+            .attr("class", "x axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x));
 
-    // Line chart: Initial blank line
-    let linePath = g.append("path")
-        .datum([0, 0])
-        .attr("fill", "none")
-        .attr("stroke", "url(#line-gradient)")
-        .attr("stroke-width", 3)
-        .attr("d", d3.line()
-            .x((d, i) => x(i === 0 ? "Man" : "Woman") + x.bandwidth() / 2)
-            .y(() => ySalary(0))
-        );
+        // add y-axis on the left
+        const yAxis = g.append("g")
+            .attr("class", "y axis")
+            .call(d3.axisLeft(y));
+            //.style("display", "none");
 
-    // Line chart: Add this function to create or update dots
-    function updateCircleMarkers(salaryLineData) {
-        // Select all the dots and bind the data
-        let circles = g.selectAll("circle.dot")
-            .data(salaryLineData, d => d.gender);
-
-        // select all the label and bind the data
-        let labels = g.selectAll(".salary-label")
-            .data(salaryLineData, d => d.gender);
-
-
-        // Add the newly entered dot and set the initial position
-        circles.enter()
-            .append("circle")
-            .attr("class", "dot")
-            .attr("fill", d => d.gender === "Man" ? "#1b72ad" : "#b36998")
-            .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
-            .attr("cy", () => ySalary(0))
-            .attr("r", 5) // Radius of the dot
-            .merge(circles)
-            .transition().duration(700)
-            .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
-            .attr("cy", d => ySalary(d.salary));
-
-        // For the existing dots, apply the transition directly
-        circles.transition().duration(700)
-            .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
-            .attr("cy", d => ySalary(d.salary));
-
-        circles.exit().remove();
-
-        // Add/update numerical labels (line chart)
-        labels.enter()
-            .append("text")
-            .attr("class", "salary-label")
-            .attr("x", d => x(d.gender) + x.bandwidth() / 2) // 初始x坐标
-            .attr("y", () => ySalary(0))
-            .attr("dy", "-1.2em")
-            .attr("text-anchor", "middle")
-            .style("font-size", "12px")
-            .style("fill", "#fff")
-            .text("0")
-            .merge(labels)
-            .transition().duration(700)
-            .attr("x", d => x(d.gender) + x.bandwidth() / 2)
-            .attr("y", d => ySalary(d.salary) - 12)
-            .tween("text", function(d) {
-                const textContent = this.textContent;
-                const currentValue = +textContent.match(/\d+/)?.[0].replace(/,/g, '') || 0;
-
-                const i = d3.interpolateRound(currentValue, d.salary);
-                // 100000→100,000
-                return function(t) {
-                    this.textContent = i(t).toLocaleString() + " 💰";
-                };
-            });
-
-        labels.exit().remove();
-    }
-
-    // Pie chart radius
-    const pieRadius = 100;
-
-    // Create a new g element for placing the pie chart
-    const pieG = d3.select("#pieChartSvg"),
-        pieSvgWidth = +pieG.attr("width"),
-        pieSvgHeight = +pieG.attr("height");
-
-    const pieGroup = pieG.append("g")
-        .attr("transform", `translate(${pieSvgWidth / 2},${pieSvgHeight / 2})`);
-
-    // Define the pie chart generator
-    const pie = d3.pie().value(d => d.rate);
-    const arc = d3.arc().innerRadius(0).outerRadius(pieRadius);
-
-    // Store old data when initializing the pie chart
-    function initPieChart() {
-        const initialData = pie([{ gender: "Man", rate: 0 }, { gender: "Woman", rate: 0 }]); // 初始空数据
-
-        pieGroup.selectAll(".arc")
-            .data(initialData)
-            .enter()
-            .append("path")
-            .attr("class", "arc")
-            .attr("fill", (d, i) => i === 0 ? "#6995b3" : "#b36998")
-            .attr("d", arc({ startAngle: 0, endAngle: 0 }))
-            .each(function(d) { this._current = d; });
-    }
-
-    // Call the initialization function
-    initPieChart();
-
-
-    // Update the pie chart
-    /*function updatePieChart(ageGroup) {
-        const unemploymentRates = calculateUnemploymentRates(data, ageGroup);
-        console.log("umemployment data:", unemploymentRates);
-
-        const newData = pie(unemploymentRates);
-
-        const arcs = pieGroup.selectAll(".arc")
-            .data(newData, d => d.data.gender);
-
-        arcs
-            .transition()
-            .duration(700)
-            .attrTween("d", function(d) {
-                const oldData = this._current;
-                const i = d3.interpolate(oldData, d);
-                this._current = i(0);
-                return (t) => arc(i(t));
-            });
-
-        arcs.exit().remove();
-
-        // update pie chart label
-        updatePieLabels(unemploymentRates);
-    }*/
-
-    function updatePieChart(ageGroup) {
-        const unemploymentRates = calculateUnemploymentRates(data, ageGroup);
-        console.log("unemployment data:", unemploymentRates);
-
-        const newData = pie(unemploymentRates);
-
-        // join g elements, each wrapping a path
-        const arcGroups = pieGroup.selectAll(".arc-group")
-            .data(newData, d => d.data.gender);
-
-        // EXIT old elements
-        arcGroups.exit().remove();
-
-        // ENTER new elements
-        const arcGroupsEnter = arcGroups.enter()
-            .append("g")
-            .attr("class", "arc-group")
-            .each(function(d, i) {
-                d3.select(this)
-                    .append("path")
-                    .attr("class", "arc")
-                    .attr("fill", i === 0 ? "#6995b3" : "#b36998")  // 使用你的颜色逻辑
-                    .attr("d", arc({ startAngle: 0, endAngle: 0 }))
-                    .each(function(d) { this._current = d; });  // 存储初始状态
-            });
-
-        // MERGE enter + update
-        const mergedArcGroups = arcGroupsEnter.merge(arcGroups);
-
-        // Animate path change
-        mergedArcGroups.select("path.arc")
-            .transition()
-            .duration(700)
-            .attrTween("d", function(d) {
-                const i = d3.interpolate(this._current, d);
-                this._current = i(0);
-                return t => arc(i(t));
-            });
-
-        // Animate group scale (zoom in/out)
-        mergedArcGroups
-            .transition()
-            .duration(200)
-            .attr("transform", "scale(1.05)")
-            .transition()
-            .duration(200)
-            .attr("transform", "scale(1)");
-
-        // Update labels
-        updatePieLabels(unemploymentRates);
-    }
-
-
-    // update pie chart label
-    function updatePieLabels(unemploymentRates) {
-        const labels = pieGroup.selectAll(".pie-label")
-            .data(pie(unemploymentRates), d => d.data.gender);
-
-        labels.enter()
-            .append("text")
-            .attr("class", "pie-label")
-            .attr("transform", d => `translate(${arc.centroid(d)})`)
-            .attr("text-anchor", "middle")
-            .attr("dy", "0.35em")
-            .style("font-size", "22px")
-            .style("fill", "white")
-            .style("font-weight", "bold")
-            .text("")
-            .merge(labels)
-            .each(function(d) {
-                const node = d3.select(this);
-                const i = d3.interpolateNumber(
-                    parseFloat(node.text().replace('%', '') || 0),
-                    d.data.rate * 100
-                );
-                node.transition()
-                    .duration(500)
-                    .tween("text", () => t => {
-                        node.text(`${i(t).toFixed(1)}%`);
-                    });
-            });
-
-        labels.exit().remove();
-    }
-
-
-    function updateChart(ageGroup) {
-        const filteredData = groupData(data, ageGroup);
-        // Add a new function to obtain salary data
-        const salaryData = calculateSalaries(data, ageGroup);
-
-        // line chart
-        const salaryLineData = [
-            { gender: "Man", salary: salaryData.manAvg },
-            { gender: "Woman", salary: salaryData.womanAvg }
+        // Initial data (simulated data)
+        let currentData = [
+            { gender: "Man", count: 0 },
+            { gender: "Woman", count: 0 }
         ];
 
-        console.log("💰 salary data:", salaryData);
-
-        yAxisRight.transition().duration(500).call(d3.axisRight(ySalary));
-
-        const lineGenerator = d3.line()
-            .x(d => x(d.gender) + x.bandwidth() / 2)
-            .y(d => ySalary(d.salary))
-            .curve(d3.curveMonotoneX);  // 平滑折线
-
-        // update line path
-        linePath
-            .datum(salaryLineData)
-            .transition()
-            .duration(700)
-            .attr("d", lineGenerator);
-
-        // update circle markers
-        updateCircleMarkers(salaryLineData);
-
-        yAxis.transition().duration(500).call(d3.axisLeft(y));
-
-        // data binded + transform
-        bars = bars
-            .data(filteredData, d => d.gender); // key function to bind data correctly
-
-        bars.enter()
+        // create bar chart
+        let bars = g.selectAll(".bar")
+            .data(currentData)
+            .enter()
             .append("rect")
             .attr("class", d => `bar ${d.gender.toLowerCase()}`)
-            .attr("x", d => x(d.gender))
-            .attr("y", height)
-            .attr("width", x.bandwidth())
-            .attr("height", 0)
-            .merge(bars)
-            .transition()
-            .duration(700)
             .attr("x", d => x(d.gender))
             .attr("y", d => y(d.count))
             .attr("width", x.bandwidth())
             .attr("height", d => height - y(d.count))
-            .attr("fill", d => d.gender === "Man" ? "#6995b3" : "#b36998");
+            .attr("fill", d => d.gender === "Man" ? "steelblue" : "red");
 
-        // add or update text label（bar chart）
-        const texts = g.selectAll(".bar-label")
-            .data(filteredData, d => d.gender);
 
-        texts.enter()
-            .append("text")
-            .attr("class", "bar-label")
-            .attr("x", d => x(d.gender) + x.bandwidth() / 2)
-            .attr("y", height)
-            .attr("dy", "-0.5em")
-            .style("text-anchor", "middle")
-            .style("font-size", "14px")
-            .style("fill", "#fff")
-            .text(d => `${d.count} 👤`)
-            .merge(texts)
-            .transition()
-            .duration(700)
-            .attr("x", d => x(d.gender) + x.bandwidth() / 2)
-            .attr("y", d => y(d.count) - 4)
-            .tween("text", function(d) {
-                const i = d3.interpolateRound(+this.textContent || 0, d.count);
-                return function(t) {
-                    //this.textContent = i(t);
-                    this.textContent = `${i(t)} 👤‍`;
-                };
+        // Handmade legend
+        svg.append("circle").attr("cx",400).attr("cy",30).attr("r", 6).style("fill", "#6995b3")
+        svg.append("circle").attr("cx",400).attr("cy",60).attr("r", 6).style("fill", "#b36998")
+        svg.append("text").attr("x", 420).attr("y", 30)
+            .text("Man").style("font-size", "15px").attr("alignment-baseline","middle").style("fill", "#fff")
+        svg.append("text").attr("x", 420).attr("y", 60)
+            .text("Woman").style("font-size", "15px").attr("alignment-baseline","middle").style("fill", "#fff")
+
+        // Line chart: Initial blank line
+        let linePath = g.append("path")
+            .datum([0, 0])
+            .attr("fill", "none")
+            .attr("stroke", "url(#line-gradient)")
+            .attr("stroke-width", 3)
+            .attr("d", d3.line()
+                .x((d, i) => x(i === 0 ? "Man" : "Woman") + x.bandwidth() / 2)
+                .y(() => ySalary(0))
+            );
+
+        // Line chart: Add this function to create or update dots
+        function updateCircleMarkers(salaryLineData) {
+            // Select all the dots and bind the data
+            let circles = g.selectAll("circle.dot")
+                .data(salaryLineData, d => d.gender);
+
+            // select all the label and bind the data
+            let labels = g.selectAll(".salary-label")
+                .data(salaryLineData, d => d.gender);
+
+
+            // Add the newly entered dot and set the initial position
+            circles.enter()
+                .append("circle")
+                .attr("class", "dot")
+                .attr("fill", d => d.gender === "Man" ? "#1b72ad" : "#b36998")
+                .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
+                .attr("cy", () => ySalary(0))
+                .attr("r", 5) // Radius of the dot
+                .merge(circles)
+                /* add mouse over tooltip */
+                .on("mouseover", function(event, d) {
+                    d3.select("#tooltip")
+                        .style("opacity", 1)
+                        .html(`
+                    <strong>Gender:</strong> ${d.gender}<br>
+                    <strong>Average annual salary:</strong> $${d.salary.toLocaleString()}
+                `)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 30) + "px");
+                })
+                .on("mousemove", function(event) {
+                    d3.select("#tooltip")
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 30) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select("#tooltip").style("opacity", 0);
+                })
+                .transition().duration(700)
+                .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
+                .attr("cy", d => ySalary(d.salary));
+
+            // For the existing dots, apply the transition directly
+            circles.transition().duration(700)
+                .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
+                .attr("cy", d => ySalary(d.salary));
+
+            circles.exit().remove();
+
+            // Add/update numerical labels (line chart)
+            labels.enter()
+                .append("text")
+                .attr("class", "salary-label")
+                .attr("x", d => x(d.gender) + x.bandwidth() / 2) // 初始x坐标
+                .attr("y", () => ySalary(0))
+                .attr("dy", "-1.2em")
+                .attr("text-anchor", "middle")
+                .style("font-size", "12px")
+                .style("fill", "#fff")
+                .text("0")
+                .merge(labels)
+                .transition().duration(700)
+                .attr("x", d => x(d.gender) + x.bandwidth() / 2)
+                .attr("y", d => ySalary(d.salary) - 12)
+                .tween("text", function(d) {
+                    const textContent = this.textContent;
+                    const currentValue = +textContent.match(/\d+/)?.[0].replace(/,/g, '') || 0;
+
+                    const i = d3.interpolateRound(currentValue, d.salary);
+                    // 100000→100,000
+                    return function(t) {
+                        const salaryText = i(t).toLocaleString(); // Format
+                        this.textContent = "$" + salaryText + " 💰"; // Set the complete text
+                    };
+                });
+
+            labels.exit().remove();
+        }
+
+        // Pie chart radius
+        const pieRadius = 100;
+
+        // Create a new g element for placing the pie chart
+        const pieG = d3.select("#pieChartSvg"),
+            pieSvgWidth = +pieG.attr("width"),
+            pieSvgHeight = +pieG.attr("height");
+
+        const pieGroup = pieG.append("g")
+            .attr("transform", `translate(${pieSvgWidth / 2},${pieSvgHeight / 2})`);
+
+        // Define the pie chart generator
+        const pie = d3.pie().value(d => d.rate);
+        const arc = d3.arc().innerRadius(0).outerRadius(pieRadius);
+
+        // Store old data when initializing the pie chart
+        function initPieChart() {
+            const initialData = pie([{ gender: "Man", rate: 0 }, { gender: "Woman", rate: 0 }]); // 初始空数据
+
+            pieGroup.selectAll(".arc")
+                .data(initialData)
+                .enter()
+                .append("path")
+                .attr("class", "arc")
+                .attr("fill", (d, i) => i === 0 ? "#6995b3" : "#b36998")
+                .attr("d", arc({ startAngle: 0, endAngle: 0 }))
+                .each(function(d) { this._current = d; });
+
+            // Add legend for pie chart
+            const legendData = ["Man", "Woman"];
+            const legendColors = ["#6995b3", "#b36998"];
+
+            const legend = pieGroup.append("g")
+                .attr("class", "pie-legend")
+                .attr("transform", `translate(-${pieRadius}, ${pieRadius + 30})`);
+
+            legend.selectAll("rect")
+                .data(legendData)
+                .enter()
+                .append("rect")
+                .attr("x", (d, i) => i * 120)
+                .attr("y", 0)
+                .attr("width", 15)
+                .attr("height", 15)
+                .attr("fill", (d, i) => legendColors[i]);
+
+            legend.selectAll("text")
+                .data(legendData)
+                .enter()
+                .append("text")
+                .attr("x", (d, i) => i * 120 + 20)
+                .attr("y", 12)
+                .attr("fill", "#fff")
+                .style("font-size", "14px")
+                .text(d => d);
+        }
+
+        // Call the initialization function
+        initPieChart();
+
+        function updatePieChart(ageGroup) {
+            const unemploymentRates = calculateUnemploymentRates(data, ageGroup);
+            console.log("unemployment data:", unemploymentRates);
+
+            const newData = pie(unemploymentRates);
+
+            // join g elements, each wrapping a path
+            const arcGroups = pieGroup.selectAll(".arc-group")
+                .data(newData, d => d.data.gender);
+
+            // EXIT old elements
+            arcGroups.exit().remove();
+
+            // ENTER new elements
+            const arcGroupsEnter = arcGroups.enter()
+                .append("g")
+                .attr("class", "arc-group")
+                .each(function(d, i) {
+                    d3.select(this)
+                        .append("path")
+                        .attr("class", "arc")
+                        .attr("fill", i === 0 ? "#6995b3" : "#b36998")  // 使用你的颜色逻辑
+                        .attr("d", arc({ startAngle: 0, endAngle: 0 }))
+                        .each(function(d) { this._current = d; });  // 存储初始状态
+                });
+
+            // MERGE enter + update
+            const mergedArcGroups = arcGroupsEnter.merge(arcGroups);
+
+            // Animate path change
+            mergedArcGroups.select("path.arc")
+                /* add mouse hover tooltip */
+                .on("mouseover", function(event, d) {
+                    // show tooltip
+                    const rate = (d.data.rate * 100).toFixed(1);
+                    d3.select("#tooltip")
+                        .style("opacity", 1)
+                        .html(`
+                <strong>Gender:</strong> ${d.data.gender}<br>
+                <strong>Unemployment Rate:</strong> ${rate}%`)
+                        .style("left", (event.pageX - tooltip.node().offsetWidth - 10) + "px") // tooltip shown on the left
+                        .style("top", (event.pageY - 20) + "px");
+                })
+                .on("mousemove", function(event) {
+                    d3.select("#tooltip")
+                        .style("left", (event.pageX - d3.select("#tooltip").node().offsetWidth - 10) + "px")
+                        .style("top", (event.pageY - 20) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select("#tooltip").style("opacity", 0);
+                })
+                .transition()
+                .duration(700)
+                .attrTween("d", function(d) {
+                    const i = d3.interpolate(this._current, d);
+                    this._current = i(0);
+                    return t => arc(i(t));
+                });
+
+            // Animate group scale (zoom in/out)
+            mergedArcGroups
+                .transition()
+                .duration(200)
+                .attr("transform", "scale(1.05)")
+                .transition()
+                .duration(200)
+                .attr("transform", "scale(1)");
+
+            // Update labels
+            updatePieLabels(unemploymentRates);
+        }
+
+
+        // update pie chart label
+        function updatePieLabels(unemploymentRates) {
+            const labels = pieGroup.selectAll(".pie-label")
+                .data(pie(unemploymentRates), d => d.data.gender);
+
+            labels.enter()
+                .append("text")
+                .attr("class", "pie-label")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
+                .attr("text-anchor", "middle")
+                .attr("dy", "0.35em")
+                .style("font-size", "22px")
+                .style("fill", "white")
+                .style("font-weight", "bold")
+                .text("")
+                .merge(labels)
+                .each(function(d) {
+                    const node = d3.select(this);
+                    const i = d3.interpolateNumber(
+                        parseFloat(node.text().replace('%', '') || 0),
+                        d.data.rate * 100
+                    );
+                    node.transition()
+                        .duration(500)
+                        .tween("text", () => t => {
+                            node.text(`${i(t).toFixed(1)}%`);
+                        });
+                });
+
+            labels.exit().remove();
+        }
+
+
+        function updateChart(ageGroup) {
+            const filteredData = groupData(data, ageGroup);
+            // Add a new function to obtain salary data
+            const salaryData = calculateSalaries(data, ageGroup);
+
+            // line chart
+            const salaryLineData = [
+                { gender: "Man", salary: salaryData.manAvg },
+                { gender: "Woman", salary: salaryData.womanAvg }
+            ];
+
+            console.log("💰 salary data:", salaryData);
+
+            yAxisRight.transition().duration(500).call(d3.axisRight(ySalary));
+
+            const lineGenerator = d3.line()
+                .x(d => x(d.gender) + x.bandwidth() / 2)
+                .y(d => ySalary(d.salary))
+                .curve(d3.curveMonotoneX);  // 平滑折线
+
+            // update line path
+            linePath
+                .datum(salaryLineData)
+                .transition()
+                .duration(700)
+                .attr("d", lineGenerator);
+
+            // update circle markers
+            updateCircleMarkers(salaryLineData);
+
+            yAxis.transition().duration(500).call(d3.axisLeft(y));
+
+            // data binded + transform
+            bars = bars
+                .data(filteredData, d => d.gender); // key function to bind data correctly
+
+            bars.enter()
+                .append("rect")
+                .attr("class", d => `bar ${d.gender.toLowerCase()}`)
+                .attr("x", d => x(d.gender))
+                .attr("y", height)
+                .attr("width", x.bandwidth())
+                .attr("height", 0)
+                .merge(bars)
+                /* add mouse over tooltip */
+                .on("mouseover", function(event, d) {
+                    d3.select("#tooltip")
+                        .style("opacity", 1)
+                        .html(`<strong>Gender:</strong> ${d.gender}<br><strong>Current employees:</strong> ${d.count.toLocaleString()}`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 30) + "px");
+                })
+                .on("mousemove", function(event) {
+                    d3.select("#tooltip")
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 30) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select("#tooltip").style("opacity", 0);
+                })
+                .transition()
+                .duration(700)
+                .attr("x", d => x(d.gender))
+                .attr("y", d => y(d.count))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.count))
+                .attr("fill", d => d.gender === "Man" ? "#6995b3" : "#b36998");
+
+            // add or update text label（bar chart）
+            const texts = g.selectAll(".bar-label")
+                .data(filteredData, d => d.gender);
+
+            texts.enter()
+                .append("text")
+                .attr("class", "bar-label")
+                .attr("x", d => x(d.gender) + x.bandwidth() / 2)
+                .attr("y", height)
+                .attr("dy", "-0.5em")
+                .style("text-anchor", "middle")
+                .style("font-size", "14px")
+                .style("fill", "#fff")
+                .text(d => `${d.count} 👤`)
+                .merge(texts)
+                .transition()
+                .duration(700)
+                .attr("x", d => x(d.gender) + x.bandwidth() / 2)
+                .attr("y", d => y(d.count) - 4)
+                .tween("text", function(d) {
+                    const i = d3.interpolateRound(+this.textContent || 0, d.count);
+                    return function(t) {
+                        //this.textContent = i(t);
+                        this.textContent = `${i(t)} 👤‍`;
+                    };
+                });
+
+            bars.exit().remove();
+
+            // uodate pie chart
+            updatePieChart(ageGroup);
+
+        }
+
+
+        // Button event listening
+        d3.select("#age_lt").on("click", () => {
+            // update charts
+            updateChart("<35");
+
+            document.getElementById("after_35").style.display = "none"; // 显示大于35岁的内容
+            document.getElementById("before_35").style.display = "block"; // 隐藏小于35岁的内容
+
+            showDescription("before_35", "after_35");
+
+            document.getElementById("bar_and_line_description_1").style.display = "block"; // show the description of before 35
+            document.getElementById("bar_and_line_description_2").style.display = "none"; // show the description of after 35
+
+            showDescription("bar_and_line_description_1", "bar_and_line_description_2");
+        });
+        d3.select("#age_ge").on("click", () => {
+            updateChart(">35"); // update charts
+
+            document.getElementById("after_35").style.display = "block"; // 显示大于35岁的内容
+            document.getElementById("before_35").style.display = "none"; // 隐藏小于35岁的内容
+
+            showDescription("after_35", "before_35")
+
+            document.getElementById("bar_and_line_description_2").style.display = "block"; // show the description of after 35
+            document.getElementById("bar_and_line_description_1").style.display = "none"; // show the description of before 35
+
+            showDescription("bar_and_line_description_2", "bar_and_line_description_1");
+        });
+
+        function showDescription(showId, hideId) {
+            const showEl = document.getElementById(showId);
+            const hideEl = document.getElementById(hideId);
+
+            // Hide the old one first
+            hideEl.classList.remove("show");
+            hideEl.classList.add("hide");
+
+            // Wait until the transition is completed before switching to the other one
+            setTimeout(() => {
+                // Display new
+                showEl.classList.remove("hide");
+                showEl.classList.add("show");
+
+                showEl.style.transform = "scale(1.05)";
+                setTimeout(() => {
+                    showEl.style.transform = "scale(1)";
+                }, 100);
+            }, 300);
+        }
+
+        // load data
+        let data = [];
+
+        d3.csv("data_csv/stackoverflow_full.csv")
+            .then(csvData => {
+                data = csvData;
+                updateChart("<35");
+            })
+            .catch(error => console.error('Error loading the CSV file:', error));
+
+        // Data preprocessing function - Filter data based on age groups and count the number of male and female employees
+        function groupData(data, ageGroup) {
+            const counts = {
+                Man: 0,
+                Woman: 0
+            };
+
+            data.forEach(d => {
+                if (d.Age !== ageGroup || d.MainBranch !== "Dev") return; // 确保只计算在职工作者
+
+                if (d.Gender === "Man") counts.Man++;
+                else if (d.Gender === "Woman") counts.Woman++;
             });
 
-        bars.exit().remove();
+            return [
+                { gender: "Man", count: counts.Man },
+                { gender: "Woman", count: counts.Woman }
+            ];
+        }
 
-        // uodate pie chart
-        updatePieChart(ageGroup);
+        // calculate salaries
+        function calculateSalaries(data, ageGroup) {
+            let manSalaries = [];
+            let womanSalaries = [];
 
-    }
+            data.forEach(d => {
+                if (d.Age !== ageGroup || d.MainBranch !== "Dev") return;
 
+                const salary = +d.PreviousSalary;
+                if (!salary || isNaN(salary)) return;
 
-    // Button event listening
-    d3.select("#age_lt").on("click", () => {
-        // update charts
-        updateChart("<35");
-
-        document.getElementById("after_35").style.display = "none"; // 显示大于35岁的内容
-        document.getElementById("before_35").style.display = "block"; // 隐藏小于35岁的内容
-
-        showDescription("before_35", "after_35");
-
-        document.getElementById("bar_and_line_description_1").style.display = "block"; // show the description of before 35
-        document.getElementById("bar_and_line_description_2").style.display = "none"; // show the description of after 35
-
-        showDescription("bar_and_line_description_1", "bar_and_line_description_2");
-    });
-    d3.select("#age_ge").on("click", () => {
-        updateChart(">35"); // update charts
-
-        document.getElementById("after_35").style.display = "block"; // 显示大于35岁的内容
-        document.getElementById("before_35").style.display = "none"; // 隐藏小于35岁的内容
-
-        showDescription("after_35", "before_35")
-
-        document.getElementById("bar_and_line_description_2").style.display = "block"; // show the description of after 35
-        document.getElementById("bar_and_line_description_1").style.display = "none"; // show the description of before 35
-
-        showDescription("bar_and_line_description_2", "bar_and_line_description_1");
-    });
-
-    function showDescription(showId, hideId) {
-        const showEl = document.getElementById(showId);
-        const hideEl = document.getElementById(hideId);
-
-        // Hide the old one first
-        hideEl.classList.remove("show");
-        hideEl.classList.add("hide");
-
-        // Wait until the transition is completed before switching to the other one
-        setTimeout(() => {
-            // Display new
-            showEl.classList.remove("hide");
-            showEl.classList.add("show");
-
-            showEl.style.transform = "scale(1.05)";
-            setTimeout(() => {
-                showEl.style.transform = "scale(1)";
-            }, 100);
-        }, 300);
-    }
-
-    // load data
-    let data = [];
-
-    d3.csv("data_csv/stackoverflow_full.csv")
-        .then(csvData => {
-            data = csvData;
-            updateChart("<35");
-        })
-        .catch(error => console.error('Error loading the CSV file:', error));
-
-    // Data preprocessing function - Filter data based on age groups and count the number of male and female employees
-    function groupData(data, ageGroup) {
-        const counts = {
-            Man: 0,
-            Woman: 0
-        };
-
-        data.forEach(d => {
-            if (d.Age !== ageGroup || d.MainBranch !== "Dev") return; // 确保只计算在职工作者
-
-            if (d.Gender === "Man") counts.Man++;
-            else if (d.Gender === "Woman") counts.Woman++;
-        });
-
-        return [
-            { gender: "Man", count: counts.Man },
-            { gender: "Woman", count: counts.Woman }
-        ];
-    }
-
-    // calculate salaries
-    function calculateSalaries(data, ageGroup) {
-        let manSalaries = [];
-        let womanSalaries = [];
-
-        data.forEach(d => {
-            if (d.Age !== ageGroup || d.MainBranch !== "Dev") return;
-
-            const salary = +d.PreviousSalary;
-            if (!salary || isNaN(salary)) return;
-
-            if (d.Gender === "Man") {
-                manSalaries.push(salary);
-            } else if (d.Gender === "Woman") {
-                womanSalaries.push(salary);
-            }
-        });
-
-        const manAvg = manSalaries.length ? d3.mean(manSalaries) : 0;
-        const womanAvg = womanSalaries.length ? d3.mean(womanSalaries) : 0;
-
-        return {
-            manAvg: Math.round(manAvg * 10) / 10,
-            womanAvg: Math.round(womanAvg * 10) / 10
-        };
-    }
-
-    // calculate UnemploymentRates
-    function calculateUnemploymentRates(data, ageGroup) {
-        let manCount = 0, womanCount = 0;
-        let manUnemployed = 0, womanUnemployed = 0;
-
-        data.forEach(d => {
-            if (d.Age !== ageGroup) return; // Only select data for specific age groups
-
-            if (d.Gender === "Man") {
-                manCount++;
-                if (d.Employed === "0") manUnemployed++;
-            } else if (d.Gender === "Woman") {
-                womanCount++;
-                if (d.Employed === "0") womanUnemployed++;
-            }
-        });
-
-        const manRate = manCount > 0 ? manUnemployed / manCount : 0;
-        const womanRate = womanCount > 0 ? womanUnemployed / womanCount : 0;
-
-        return [
-            { gender: "Man", rate: manRate },
-            { gender: "Woman", rate: womanRate }
-        ];
-    }
-
-</script>
-
-<!-- step 2: question exploration d3 charts -->
-<script>
-
-    document.addEventListener('DOMContentLoaded', function() {
-
-        const keywords = document.querySelectorAll('.keyword');
-
-        const iframe = document.getElementById('dynamicChart');
-
-        const chartSources = {
-            'chart1': 'lineSalary.html',
-            'chart2': 'waterfallSalary.html',
-            'chart3': 'sankey.html'
-        };
-
-        // Add click event listeners for each keyword
-        keywords.forEach(function(keyword) {
-            keyword.addEventListener('click', function() {
-                const chartId = this.getAttribute('data-chart');
-
-                const src = chartSources[chartId];
-
-                if (src) {
-                    const src = chartSources[chartId] + '?t=' + new Date().getTime();
-
-                    iframe.src = src;
-
-                    // show iframe
-                    iframe.style.display = 'block';
+                if (d.Gender === "Man") {
+                    manSalaries.push(salary);
+                } else if (d.Gender === "Woman") {
+                    womanSalaries.push(salary);
                 }
             });
-        });
-    });
 
-</script>
+            const manAvg = manSalaries.length ? d3.mean(manSalaries) : 0;
+            const womanAvg = womanSalaries.length ? d3.mean(womanSalaries) : 0;
+
+            return {
+                manAvg: Math.round(manAvg * 10) / 10,
+                womanAvg: Math.round(womanAvg * 10) / 10
+            };
+        }
+
+        // calculate UnemploymentRates
+        function calculateUnemploymentRates(data, ageGroup) {
+            let manCount = 0, womanCount = 0;
+            let manUnemployed = 0, womanUnemployed = 0;
+
+            data.forEach(d => {
+                if (d.Age !== ageGroup) return; // Only select data for specific age groups
+
+                if (d.Gender === "Man") {
+                    manCount++;
+                    if (d.Employed === "0") manUnemployed++;
+                } else if (d.Gender === "Woman") {
+                    womanCount++;
+                    if (d.Employed === "0") womanUnemployed++;
+                }
+            });
+
+            const manRate = manCount > 0 ? manUnemployed / manCount : 0;
+            const womanRate = womanCount > 0 ? womanUnemployed / womanCount : 0;
+
+            return [
+                { gender: "Man", rate: manRate },
+                { gender: "Woman", rate: womanRate }
+            ];
+        }
+
+    </script>
+
+    <!-- step 2: question exploration d3 charts -->
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const keywords = document.querySelectorAll('.keyword');
+
+            const iframe = document.getElementById('dynamicChart');
+
+            const chartSources = {
+                'chart1': 'lineSalary.html',
+                'chart2': 'waterfallSalary.html',
+                'chart3': 'sankey.html'
+            };
+
+            // Add click event listeners for each keyword
+            keywords.forEach(function(keyword) {
+                keyword.addEventListener('click', function() {
+                    const chartId = this.getAttribute('data-chart');
+
+                    const src = chartSources[chartId];
+
+                    if (src) {
+                        const src = chartSources[chartId] + '?t=' + new Date().getTime();
+
+                        iframe.src = src;
+
+                        // show iframe
+                        iframe.style.display = 'block';
+                    }
+                });
+            });
+        });
+
+    </script>
 
     <!-- It is loaded to the first card by default -->
     <script>
