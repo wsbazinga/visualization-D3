@@ -366,6 +366,34 @@
             .attr("y2", function(d) { return yScale(d.end) } )
             .style("opacity", 0) // hide
 
+        /* add legened */
+        const legendData = [
+            { label: 'Full annual salary', color: '#1f77b4' }, // Blue
+            { label: 'YoY increase', color: '#2ca02c' }, // Green
+            { label: 'YoY decrease', color: '#d62728' } // Red
+        ];
+
+        const legendG = svg.append('g')
+            .attr('transform', `translate(${margin.left + width - 150},${margin.top - 50})`) // 调整位置以适应你的布局
+            .selectAll('.legend')
+            .data(legendData)
+            .enter().append('g')
+            .attr('class', 'legend')
+            .attr('transform', (d, i) => `translate(0,${i * 15})`);
+
+        legendG.append('rect')
+            .attr('width', 12)
+            .attr('height', 12)
+            .style('fill', d => d.color);
+
+        legendG.append('text')
+            .attr('x', 24)
+            .attr('y', 9)
+            .attr('dy', '.35em')
+            .text(d => d.label)
+            .style('font-size', '12px')
+            .style("fill", "#fff");
+
     }
 
     // format dollar
