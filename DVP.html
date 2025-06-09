@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>D3 Dynamic Bar Chart - Gender and Age</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+
+        .btn-group button {
+            margin: 10px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* The x and y axes */
+        .axis path,
+        .axis line {
+            stroke: white;
+            shape-rendering: crispEdges;
+        }
+
+        /* Modify the scale text colors on the X-axis and Y-axis */
+        .axis text {
+            fill: white;
+            font-size: 12px;
+            font-family: sans-serif;
+        }
+
+        #my_data_gender {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* The two columns are evenly divided */
+            gap: 20px; /* Column spacing */
+            align-items: start; /* Top alignment */
+        }
+
+        /* 3 cards */
+        .card {
+            height: 666px;
+            width: 90%;
+            margin: 20px auto;
+            background-color: lightgrey;
+            border-radius: 10px;
+            /*transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s ease;*/
+        }
+
+        .keyword {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+        }
+
+        .clickable-text,
+        .keyword
+        {
+            margin: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #666;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clickable-text:hover,
+        .keyword:hover {
+            background-color: #ffdb4d;
+            color: #111;
+        }
+
+        #my_data_gender {
+            display: grid;
+            /*The first and third columns occupy the space of the chart,
+            and the second column automatically ADAPTS to the width of the content*/
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center; /* Vertically centered alignment */
+        }
+
+        .chart-container {
+            justify-self: start; /* The chart on the left is on the left */
+        }
+
+        /* If you need the chart on the right to move to the right, you can add the following rules */
+        #my_data_gender .chart-container:last-child {
+            justify-self: end; /* The chart on the right is on the right */
+        }
+
+        .middle-text {
+            text-align: center;
+            color: white;
+        }
+
+        /* The Y-axis colors on the left and right sides */
+        .y.axis path,
+        .y.axis line {
+            stroke: #666666;
+            stroke-opacity: 0.6; /* Make the lines softer */
+        }
+
+        /* Set the scale number on the Y-axis to gray */
+        .y.axis text {
+            fill: #666666;
+            font-size: 12px;
+        }
+
+        .description-box {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        .description-box.show {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .description-box.hide {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- the first card -->
+    <div id = "introduction_crisis" class = "card" style="background-color: #222222">
+
+        <!-- 2 buttons -->
+        <div class="btn-group" >
+            <p style="color: white; font-size: 20px; padding-top: 20px; padding-left: 20px">
+                Let’s first look at the workplace landscape for
+                <span style="color: #6995b3; font-size: 30px">male</span> and
+                <span style="color: #b36998; font-size: 30px">female</span> programmers
+
+                <span id="age_lt" class="clickable-text">under the age of 35.</span>
+            </p>
+
+            <div id="bar_and_line_description_1" class="description-box show">
+                <p style="color: white; font-size: 16px; padding-left: 20px;">
+                    At this stage, male programmers greatly outnumber females—by a factor of
+                    <span style="color: #6995b3; font-size: 30px">17.51%</span>.
+                    The red bars look tiny compared to the towering blue.
+                </p>
+
+                <p style="color: white; font-size: 16px; padding-left: 20px;">
+                    Yet surprisingly, despite being fewer in number,
+                    <span style="color: #b36998; font-size: 20px">female programmers earn slightly more on average</span>.
+                </p>
+            </div>
+
+            <div id="bar_and_line_description_2" style="display: none" class="description-box hide">
+                <p style="color: white; font-size: 16px; padding-left: 20px;">
+                    The number of employed programmers drops sharply: a
+                    <span style="color: #6995b3; font-size: 30px">48%</span> decrease
+                    for <span style="color: #6995b3; font-size: 30px">men</span>
+                    and a staggering <span style="color: #b36998; font-size: 30px">66%</span> for
+                    <span style="color: #b36998; font-size: 30px">women</span>.
+                </p>
+
+                <p style="color: white; font-size: 16px; padding-left: 20px;">
+                    Though salaries rise overall,
+                    <span style="color: #b36998; font-size: 20px">the slight edge women once held disappears</span>,
+                    replaced by a noticeable gap.
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- svg div -->
+        <div id="my_data_gender">
+
+            <!-- SVG of the main chart -->
+            <div class="chart-container left-chart">
+                <!-- title -->
+                <h3 style="color: #a3a3a3; margin-left: 20px">
+                    Programmer Gender Gap: Employment & Salary Trends
+                </h3>
+
+                <svg id="barAndLine" width="550" height="400"></svg>
+            </div>
+
+            <!-- The text in the middle -->
+            <div class="middle-text">
+                <div id="before_35" class="description-box show">
+                    <p>But the unemployment data paints a heavier picture.</p>
+                    <p>Both genders face nearly
+                        <span style="font-size: 30px; font-weight: bold">50%</span> unemployment before 35, with
+                        <span style="color: #b36998; font-size: 30px">women</span> reaching a high of
+                        <span style="color: #b36998; font-size: 30px">53.7%</span>
+                    </p>
+                    <p style="line-height: 2.5;">
+                        — meaning <span style="color: #b36998; font-size: 20px">one in every two</span> female programmers may lose their job.
+                        It’s far from an easy starting point.
+                    </p>
+                </div>
+
+                <div id="after_35" style="display: none" class="description-box hide">
+                    <p>Meanwhile, the shadow of unemployment still looms.</p>
+                    <p>
+                        Already <span style="font-size: 30px; font-weight: bold">high rates</span> continue to climb, with
+                        <span style="color: #b36998; font-size: 30px">women</span> unemployment reaching
+                        <span style="color: #b36998; font-size: 30px">59%</span>
+                    </p>
+                    <p style="line-height: 2.5;">
+                        — meaning <span style="color: #b36998; font-size: 20px">more than half</span> of mid-career women programmers are no longer in the field.
+                    </p>
+                </div>
+
+                <p style="font-size: 20px">
+                    So, what happens <span id="age_ge" class="clickable-text">after 35?</span>
+                </p>
+            </div>
+
+            <!-- pie chart SVG -->
+            <div class="chart-container right-chart">
+                <svg id="pieChartSvg" width="250" height="300" transform="translate(0,20)"></svg>
+
+                <!-- title -->
+                <h3 style="color: #a3a3a3; margin-left: 20px">
+                    Unemployment Rate by Gender
+                </h3>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- the second card: explore questions：salary, unemployment, career shifts -->
+    <div id = "question_exploration" class="card"
+         style="background-color: #222222; display: flex; flex-direction: column; align-items: center;">
+
+        <div id="keywords">
+            <p style="color: white; font-size: 16px; padding-left: 20px; padding-right: 20px">
+                After exploring the overall employment and income differences between male and female programmers,
+                let’s dive deeper into their career journeys through <span style="font-size: 22px; font-weight: bold">three key perspectives:</span>
+                changes in <span class="keyword" data-chart="chart1">employment numbers</span>,
+                <span class="keyword" data-chart="chart2">average salaries</span>,
+                and
+                <span class="keyword" data-chart="chart3">career transitions</span>
+                — uncovering how age gradually reshapes the professional paths of programmers.
+            </p>
+        </div>
+
+        <!-- question exploration: 3 charts -->
+        <iframe id="dynamicChart" src="lineSalary.html" width="100%" height="650px"
+                style="border:none; padding-left: 30px;">
+        </iframe>
+    </div>
+
+    <!-- Section: Interactive Ending -->
+    <div id="interactiveEnding" class="card"
+         style="background-color: #1a1a1a; color: white; text-align: center;">
+
+        <h2 style="color: #00ff99; margin-bottom: 20px; padding-top: 80px">After all this...</h2>
+        <p style="font-size: 20px;">Do you still want to pursue a future in programming?</p>
+
+        <div style="margin-top: 20px;">
+            <button onclick="handleChoice(true)" style="font-size: 18px; margin: 10px 80px;" class="clickable-text">Yes, I do!</button>
+            <button onclick="handleChoice(false)" style="font-size: 18px; margin: 10px 80px;" class="clickable-text">Not really...</button>
+        </div>
+
+        <!-- If answer is No -->
+        <div id="noMessage" style="display: none; margin-top: 30px;">
+            <p style="font-size: 30px;">That's okay 💛</p>
+            <p style="font-size: 25px;">Tech is just one path among many — your journey is valid, no matter where it leads.</p>
+        </div>
+
+        <!-- If answer is Yes -->
+        <div id="languageSelection" style="display: none; margin-top: 30px;">
+            <p style="font-size: 18px;">Nice! Pick a language you love:</p>
+
+            <div style="margin-top: 10px;">
+                <button onclick="showCode('Python')" style="margin: 5px;" class="clickable-text">Python</button>
+                <button onclick="showCode('Java')" style="margin: 5px;" class="clickable-text">Java</button>
+                <button onclick="showCode('JavaScript')" style="margin: 5px;" class="clickable-text">JavaScript</button>
+                <button onclick="showCode('C++')" style="margin: 5px;" class="clickable-text">C++</button>
+                <button onclick="showCode('Go')" style="margin: 5px;" class="clickable-text">Go</button>
+            </div>
+
+            <div id="codeOutput" style="margin-top: 20px; font-family: monospace; background-color: #333; padding: 20px; border-radius: 10px; display: none;">
+                <p id="codeDisplay" style="color: #00ff99; font-size: 18px;"></p>
+                <p style="margin-top: 10px; font-size: 14px;">This could be your first line of code 💻</p>
+            </div>
+        </div>
+    </div>
+
+
+
+<script>
+    const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+
+    // Set the SVG and scale
+    const svg = d3.select("#barAndLine"),
+        // Internal bar chart, up, down, left and right, and the distance from svg
+        width = +svg.attr("width") - margin.left - margin.right - 25,
+        height = +svg.attr("height") - margin.top - margin.bottom;
+
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Scale of the X and Y axes
+    // Map the category data to a bandwidth range
+    const x = d3.scaleBand()
+        .domain(["Man", "Woman"])
+        .range([0, width])
+        // Leave 60% of the space between each column instead of letting them be close to each other.
+        .padding(0.6);
+
+    // Left Y-axis: Number of people (in ten thousand)
+    const y = d3.scaleLinear()
+        .range([height, 0])
+        .domain([0, 50000]);
+
+    // Right Y-axis: Average salary (unit: year)
+    const ySalary = d3.scaleLinear()
+        .range([height, 0])
+        .domain([0, 100000]);
+
+    const yAxisRight = g.append("g")
+        .attr("class", "y axis right")
+        .attr("transform", `translate(${width},0)`)
+        .call(d3.axisRight(ySalary));
+
+    // Line graph: Define a linear gradient
+    svg.append("defs").append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("x1", "0%").attr("y1", "0%")
+        .attr("x2", "100%").attr("y2", "0%")
+        .selectAll("stop")
+        .data([
+            { offset: "0%", color: "#1b72ad" },
+            { offset: "100%", color: "#b36998" }
+        ])
+        .enter().append("stop")
+        .attr("offset", d => d.offset)
+        .attr("stop-color", d => d.color);
+
+
+    // add x-axis
+    g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x));
+
+    // add y-axis on the left
+    const yAxis = g.append("g")
+        .attr("class", "y axis")
+        .call(d3.axisLeft(y));
+        //.style("display", "none");
+
+    // Initial data (simulated data)
+    let currentData = [
+        { gender: "Man", count: 0 },
+        { gender: "Woman", count: 0 }
+    ];
+
+    // create bar chart
+    let bars = g.selectAll(".bar")
+        .data(currentData)
+        .enter()
+        .append("rect")
+        .attr("class", d => `bar ${d.gender.toLowerCase()}`)
+        .attr("x", d => x(d.gender))
+        .attr("y", d => y(d.count))
+        .attr("width", x.bandwidth())
+        .attr("height", d => height - y(d.count))
+        .attr("fill", d => d.gender === "Man" ? "steelblue" : "red");
+
+
+    // Handmade legend
+    svg.append("circle").attr("cx",400).attr("cy",30).attr("r", 6).style("fill", "#6995b3")
+    svg.append("circle").attr("cx",400).attr("cy",60).attr("r", 6).style("fill", "#b36998")
+    svg.append("text").attr("x", 420).attr("y", 30)
+        .text("man").style("font-size", "15px").attr("alignment-baseline","middle").style("fill", "#fff")
+    svg.append("text").attr("x", 420).attr("y", 60)
+        .text("woman").style("font-size", "15px").attr("alignment-baseline","middle").style("fill", "#fff")
+
+    // Line chart: Initial blank line
+    let linePath = g.append("path")
+        .datum([0, 0])
+        .attr("fill", "none")
+        .attr("stroke", "url(#line-gradient)")
+        .attr("stroke-width", 3)
+        .attr("d", d3.line()
+            .x((d, i) => x(i === 0 ? "Man" : "Woman") + x.bandwidth() / 2)
+            .y(() => ySalary(0))
+        );
+
+    // Line chart: Add this function to create or update dots
+    function updateCircleMarkers(salaryLineData) {
+        // Select all the dots and bind the data
+        let circles = g.selectAll("circle.dot")
+            .data(salaryLineData, d => d.gender);
+
+        // select all the label and bind the data
+        let labels = g.selectAll(".salary-label")
+            .data(salaryLineData, d => d.gender);
+
+
+        // Add the newly entered dot and set the initial position
+        circles.enter()
+            .append("circle")
+            .attr("class", "dot")
+            .attr("fill", d => d.gender === "Man" ? "#1b72ad" : "#b36998")
+            .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
+            .attr("cy", () => ySalary(0))
+            .attr("r", 5) // Radius of the dot
+            .merge(circles)
+            .transition().duration(700)
+            .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
+            .attr("cy", d => ySalary(d.salary));
+
+        // For the existing dots, apply the transition directly
+        circles.transition().duration(700)
+            .attr("cx", d => x(d.gender) + x.bandwidth() / 2)
+            .attr("cy", d => ySalary(d.salary));
+
+        circles.exit().remove();
+
+        // Add/update numerical labels (line chart)
+        labels.enter()
+            .append("text")
+            .attr("class", "salary-label")
+            .attr("x", d => x(d.gender) + x.bandwidth() / 2) // 初始x坐标
+            .attr("y", () => ySalary(0))
+            .attr("dy", "-1.2em")
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("fill", "#fff")
+            .text("0")
+            .merge(labels)
+            .transition().duration(700)
+            .attr("x", d => x(d.gender) + x.bandwidth() / 2)
+            .attr("y", d => ySalary(d.salary) - 12)
+            .tween("text", function(d) {
+                const textContent = this.textContent;
+                const currentValue = +textContent.match(/\d+/)?.[0].replace(/,/g, '') || 0;
+
+                const i = d3.interpolateRound(currentValue, d.salary);
+                // 100000→100,000
+                return function(t) {
+                    this.textContent = i(t).toLocaleString() + " 💰";
+                };
+            });
+
+        labels.exit().remove();
+    }
+
+    // Pie chart radius
+    const pieRadius = 100;
+
+    // Create a new g element for placing the pie chart
+    const pieG = d3.select("#pieChartSvg"),
+        pieSvgWidth = +pieG.attr("width"),
+        pieSvgHeight = +pieG.attr("height");
+
+    const pieGroup = pieG.append("g")
+        .attr("transform", `translate(${pieSvgWidth / 2},${pieSvgHeight / 2})`);
+
+    // Define the pie chart generator
+    const pie = d3.pie().value(d => d.rate);
+    const arc = d3.arc().innerRadius(0).outerRadius(pieRadius);
+
+    // Store old data when initializing the pie chart
+    function initPieChart() {
+        const initialData = pie([{ gender: "Man", rate: 0 }, { gender: "Woman", rate: 0 }]); // 初始空数据
+
+        pieGroup.selectAll(".arc")
+            .data(initialData)
+            .enter()
+            .append("path")
+            .attr("class", "arc")
+            .attr("fill", (d, i) => i === 0 ? "#6995b3" : "#b36998")
+            .attr("d", arc({ startAngle: 0, endAngle: 0 }))
+            .each(function(d) { this._current = d; });
+    }
+
+    // Call the initialization function
+    initPieChart();
+
+
+    // Update the pie chart
+    /*function updatePieChart(ageGroup) {
+        const unemploymentRates = calculateUnemploymentRates(data, ageGroup);
+        console.log("umemployment data:", unemploymentRates);
+
+        const newData = pie(unemploymentRates);
+
+        const arcs = pieGroup.selectAll(".arc")
+            .data(newData, d => d.data.gender);
+
+        arcs
+            .transition()
+            .duration(700)
+            .attrTween("d", function(d) {
+                const oldData = this._current;
+                const i = d3.interpolate(oldData, d);
+                this._current = i(0);
+                return (t) => arc(i(t));
+            });
+
+        arcs.exit().remove();
+
+        // update pie chart label
+        updatePieLabels(unemploymentRates);
+    }*/
+
+    function updatePieChart(ageGroup) {
+        const unemploymentRates = calculateUnemploymentRates(data, ageGroup);
+        console.log("unemployment data:", unemploymentRates);
+
+        const newData = pie(unemploymentRates);
+
+        // join g elements, each wrapping a path
+        const arcGroups = pieGroup.selectAll(".arc-group")
+            .data(newData, d => d.data.gender);
+
+        // EXIT old elements
+        arcGroups.exit().remove();
+
+        // ENTER new elements
+        const arcGroupsEnter = arcGroups.enter()
+            .append("g")
+            .attr("class", "arc-group")
+            .each(function(d, i) {
+                d3.select(this)
+                    .append("path")
+                    .attr("class", "arc")
+                    .attr("fill", i === 0 ? "#6995b3" : "#b36998")  // 使用你的颜色逻辑
+                    .attr("d", arc({ startAngle: 0, endAngle: 0 }))
+                    .each(function(d) { this._current = d; });  // 存储初始状态
+            });
+
+        // MERGE enter + update
+        const mergedArcGroups = arcGroupsEnter.merge(arcGroups);
+
+        // Animate path change
+        mergedArcGroups.select("path.arc")
+            .transition()
+            .duration(700)
+            .attrTween("d", function(d) {
+                const i = d3.interpolate(this._current, d);
+                this._current = i(0);
+                return t => arc(i(t));
+            });
+
+        // Animate group scale (zoom in/out)
+        mergedArcGroups
+            .transition()
+            .duration(200)
+            .attr("transform", "scale(1.05)")
+            .transition()
+            .duration(200)
+            .attr("transform", "scale(1)");
+
+        // Update labels
+        updatePieLabels(unemploymentRates);
+    }
+
+
+    // update pie chart label
+    function updatePieLabels(unemploymentRates) {
+        const labels = pieGroup.selectAll(".pie-label")
+            .data(pie(unemploymentRates), d => d.data.gender);
+
+        labels.enter()
+            .append("text")
+            .attr("class", "pie-label")
+            .attr("transform", d => `translate(${arc.centroid(d)})`)
+            .attr("text-anchor", "middle")
+            .attr("dy", "0.35em")
+            .style("font-size", "22px")
+            .style("fill", "white")
+            .style("font-weight", "bold")
+            .text("")
+            .merge(labels)
+            .each(function(d) {
+                const node = d3.select(this);
+                const i = d3.interpolateNumber(
+                    parseFloat(node.text().replace('%', '') || 0),
+                    d.data.rate * 100
+                );
+                node.transition()
+                    .duration(500)
+                    .tween("text", () => t => {
+                        node.text(`${i(t).toFixed(1)}%`);
+                    });
+            });
+
+        labels.exit().remove();
+    }
+
+
+    function updateChart(ageGroup) {
+        const filteredData = groupData(data, ageGroup);
+        // Add a new function to obtain salary data
+        const salaryData = calculateSalaries(data, ageGroup);
+
+        // line chart
+        const salaryLineData = [
+            { gender: "Man", salary: salaryData.manAvg },
+            { gender: "Woman", salary: salaryData.womanAvg }
+        ];
+
+        console.log("💰 salary data:", salaryData);
+
+        yAxisRight.transition().duration(500).call(d3.axisRight(ySalary));
+
+        const lineGenerator = d3.line()
+            .x(d => x(d.gender) + x.bandwidth() / 2)
+            .y(d => ySalary(d.salary))
+            .curve(d3.curveMonotoneX);  // 平滑折线
+
+        // update line path
+        linePath
+            .datum(salaryLineData)
+            .transition()
+            .duration(700)
+            .attr("d", lineGenerator);
+
+        // update circle markers
+        updateCircleMarkers(salaryLineData);
+
+        yAxis.transition().duration(500).call(d3.axisLeft(y));
+
+        // data binded + transform
+        bars = bars
+            .data(filteredData, d => d.gender); // key function to bind data correctly
+
+        bars.enter()
+            .append("rect")
+            .attr("class", d => `bar ${d.gender.toLowerCase()}`)
+            .attr("x", d => x(d.gender))
+            .attr("y", height)
+            .attr("width", x.bandwidth())
+            .attr("height", 0)
+            .merge(bars)
+            .transition()
+            .duration(700)
+            .attr("x", d => x(d.gender))
+            .attr("y", d => y(d.count))
+            .attr("width", x.bandwidth())
+            .attr("height", d => height - y(d.count))
+            .attr("fill", d => d.gender === "Man" ? "#6995b3" : "#b36998");
+
+        // add or update text label（bar chart）
+        const texts = g.selectAll(".bar-label")
+            .data(filteredData, d => d.gender);
+
+        texts.enter()
+            .append("text")
+            .attr("class", "bar-label")
+            .attr("x", d => x(d.gender) + x.bandwidth() / 2)
+            .attr("y", height)
+            .attr("dy", "-0.5em")
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .style("fill", "#fff")
+            .text(d => `${d.count} 👤`)
+            .merge(texts)
+            .transition()
+            .duration(700)
+            .attr("x", d => x(d.gender) + x.bandwidth() / 2)
+            .attr("y", d => y(d.count) - 4)
+            .tween("text", function(d) {
+                const i = d3.interpolateRound(+this.textContent || 0, d.count);
+                return function(t) {
+                    //this.textContent = i(t);
+                    this.textContent = `${i(t)} 👤‍`;
+                };
+            });
+
+        bars.exit().remove();
+
+        // uodate pie chart
+        updatePieChart(ageGroup);
+
+    }
+
+
+    // Button event listening
+    d3.select("#age_lt").on("click", () => {
+        // update charts
+        updateChart("<35");
+
+        document.getElementById("after_35").style.display = "none"; // 显示大于35岁的内容
+        document.getElementById("before_35").style.display = "block"; // 隐藏小于35岁的内容
+
+        showDescription("before_35", "after_35");
+
+        document.getElementById("bar_and_line_description_1").style.display = "block"; // show the description of before 35
+        document.getElementById("bar_and_line_description_2").style.display = "none"; // show the description of after 35
+
+        showDescription("bar_and_line_description_1", "bar_and_line_description_2");
+    });
+    d3.select("#age_ge").on("click", () => {
+        updateChart(">35"); // update charts
+
+        document.getElementById("after_35").style.display = "block"; // 显示大于35岁的内容
+        document.getElementById("before_35").style.display = "none"; // 隐藏小于35岁的内容
+
+        showDescription("after_35", "before_35")
+
+        document.getElementById("bar_and_line_description_2").style.display = "block"; // show the description of after 35
+        document.getElementById("bar_and_line_description_1").style.display = "none"; // show the description of before 35
+
+        showDescription("bar_and_line_description_2", "bar_and_line_description_1");
+    });
+
+    function showDescription(showId, hideId) {
+        const showEl = document.getElementById(showId);
+        const hideEl = document.getElementById(hideId);
+
+        // Hide the old one first
+        hideEl.classList.remove("show");
+        hideEl.classList.add("hide");
+
+        // Wait until the transition is completed before switching to the other one
+        setTimeout(() => {
+            // Display new
+            showEl.classList.remove("hide");
+            showEl.classList.add("show");
+
+            showEl.style.transform = "scale(1.05)";
+            setTimeout(() => {
+                showEl.style.transform = "scale(1)";
+            }, 100);
+        }, 300);
+    }
+
+    // load data
+    let data = [];
+
+    d3.csv("data_csv/stackoverflow_full.csv")
+        .then(csvData => {
+            data = csvData;
+            updateChart("<35");
+        })
+        .catch(error => console.error('Error loading the CSV file:', error));
+
+    // Data preprocessing function - Filter data based on age groups and count the number of male and female employees
+    function groupData(data, ageGroup) {
+        const counts = {
+            Man: 0,
+            Woman: 0
+        };
+
+        data.forEach(d => {
+            if (d.Age !== ageGroup || d.MainBranch !== "Dev") return; // 确保只计算在职工作者
+
+            if (d.Gender === "Man") counts.Man++;
+            else if (d.Gender === "Woman") counts.Woman++;
+        });
+
+        return [
+            { gender: "Man", count: counts.Man },
+            { gender: "Woman", count: counts.Woman }
+        ];
+    }
+
+    // calculate salaries
+    function calculateSalaries(data, ageGroup) {
+        let manSalaries = [];
+        let womanSalaries = [];
+
+        data.forEach(d => {
+            if (d.Age !== ageGroup || d.MainBranch !== "Dev") return;
+
+            const salary = +d.PreviousSalary;
+            if (!salary || isNaN(salary)) return;
+
+            if (d.Gender === "Man") {
+                manSalaries.push(salary);
+            } else if (d.Gender === "Woman") {
+                womanSalaries.push(salary);
+            }
+        });
+
+        const manAvg = manSalaries.length ? d3.mean(manSalaries) : 0;
+        const womanAvg = womanSalaries.length ? d3.mean(womanSalaries) : 0;
+
+        return {
+            manAvg: Math.round(manAvg * 10) / 10,
+            womanAvg: Math.round(womanAvg * 10) / 10
+        };
+    }
+
+    // calculate UnemploymentRates
+    function calculateUnemploymentRates(data, ageGroup) {
+        let manCount = 0, womanCount = 0;
+        let manUnemployed = 0, womanUnemployed = 0;
+
+        data.forEach(d => {
+            if (d.Age !== ageGroup) return; // Only select data for specific age groups
+
+            if (d.Gender === "Man") {
+                manCount++;
+                if (d.Employed === "0") manUnemployed++;
+            } else if (d.Gender === "Woman") {
+                womanCount++;
+                if (d.Employed === "0") womanUnemployed++;
+            }
+        });
+
+        const manRate = manCount > 0 ? manUnemployed / manCount : 0;
+        const womanRate = womanCount > 0 ? womanUnemployed / womanCount : 0;
+
+        return [
+            { gender: "Man", rate: manRate },
+            { gender: "Woman", rate: womanRate }
+        ];
+    }
+
+</script>
+
+<!-- step 2: question exploration d3 charts -->
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const keywords = document.querySelectorAll('.keyword');
+
+        const iframe = document.getElementById('dynamicChart');
+
+        const chartSources = {
+            'chart1': 'lineSalary.html',
+            'chart2': 'waterfallSalary.html',
+            'chart3': 'sankey.html'
+        };
+
+        // Add click event listeners for each keyword
+        keywords.forEach(function(keyword) {
+            keyword.addEventListener('click', function() {
+                const chartId = this.getAttribute('data-chart');
+
+                const src = chartSources[chartId];
+
+                if (src) {
+                    const src = chartSources[chartId] + '?t=' + new Date().getTime();
+
+                    iframe.src = src;
+
+                    // show iframe
+                    iframe.style.display = 'block';
+                }
+            });
+        });
+    });
+
+</script>
+
+    <!-- It is loaded to the first card by default -->
+    <script>
+        window.addEventListener("load", () => {
+            const firstCard = document.getElementById("introduction_crisis");
+            if (firstCard) {
+                // Scroll to the top of the first card
+                firstCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        });
+    </script>
+
+<!-- my ending -->
+    <script>
+        function handleChoice(wantsToCode) {
+            if (wantsToCode) {
+                document.getElementById('noMessage').style.display = 'none';
+                document.getElementById('languageSelection').style.display = 'block';
+            } else {
+                document.getElementById('languageSelection').style.display = 'none';
+                document.getElementById('noMessage').style.display = 'block';
+            }
+        }
+
+        function showCode(language) {
+            const codeMap = {
+                "Python": 'print("Hello, world!")',
+                "Java": 'public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello, world!");\n    }\n}',
+                "JavaScript": 'console.log("Hello, world!");',
+                "C++": '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, world!" << endl;\n    return 0;\n}',
+                "Go": 'package main\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, world!")\n}'
+            };
+
+            document.getElementById('codeOutput').style.display = 'block';
+            document.getElementById('codeDisplay').textContent = codeMap[language];
+        }
+    </script>
+
+</body>
+</html>

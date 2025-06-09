@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Salary by Age</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        .line {
+            fill: none;
+            stroke: #747f87;
+            stroke-width: 2px;
+        }
+        .axis-label {
+            font-size: 14px;
+        }
+
+        .step {
+            margin: 700px 0;
+            font-size: 18px;
+            color: white;
+        }
+
+        .graphic {
+            width: 800px;
+            height: 500px;
+        }
+
+        .bar line.connector {
+            stroke: grey;
+            stroke-dasharray: 3;
+        }
+
+        .bar.positive rect {
+            fill: #03b103;
+        }
+        .bar.negative rect {
+            fill: crimson;
+        }
+
+        .bar.final rect,
+        .bar.first rect{
+            fill: steelblue;
+        }
+
+        /* ========== style of x-axis ========== */
+
+        /* x-axis */
+        #g-x .domain {
+            stroke: #fff;
+        }
+
+        /* x-axis scale */
+        #g-x .tick line {
+            stroke: #fff;
+        }
+
+        /* ========== style of y-axis ========== */
+
+        /* y-axis */
+        #g-y .domain {
+            stroke: #666666;
+        }
+
+        /* y-axis scale */
+        #g-y .tick line {
+            stroke: #666666;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="scrolly-container" style="display: flex;">
+
+    <!-- left chart area -->
+    <div class="graphic" style="position: sticky; top: 0px; height: 500px;">
+        <h2 style="color: #a3a3a3; margin-bottom: -10px">Average Salary by Age Group</h2>
+
+        <svg id="chart" width="800" height="480"></svg>
+    </div>
+
+    <!-- text description area -->
+    <div id="text" style="margin-left: 30px;">
+        <div class="step" data-age="18-24 years old">
+            <p style="line-height: 2.5; width: 400px">
+                <span style="font-size: 30px">18-24 years old:</span>
+                <p style="line-height: 2.5; width: 400px">
+                    The average annual salary for programmers in this age group is
+                    <span style="font-size: 30px; color: steelblue">$88,368</span>,
+                    making it one of the lower figures among all age ranges.
+                    This group is typically at the early stage of their careers,
+                    with salaries still in the initial growth phase.
+                </p>
+            </p>
+        </div>
+        <div class="step" data-age="25-34 years old">
+            <p style="line-height: 2.5; width: 400px">
+                <span style="font-size: 30px">25–34 years old:</span>
+                <p style="line-height: 2.5; width: 400px">
+                    The average salary rises to <span style="font-size: 30px; color: #03b103">$103,935</span>,
+                    showing a significant <span style="font-size: 30px; color: #03b103">increase</span>
+                    of approximately <span style="font-size: 30px; color: #03b103">17.6%</span>
+                    compared to the previous age group.
+                    This reflects a rapid salary growth trend during the first few years of a programmer's career.
+                </p>
+            </p>
+        </div>
+        <div class="step" data-age="35-44 years old">
+            <p style="line-height: 2.5; width: 400px">
+                <span style="font-size: 30px">35–44 years old:</span>
+                <p style="line-height: 2.5; width: 400px">
+                    Programmers in this group earn an average of <span style="font-size: 30px; color: #03b103">$115,015</span>,
+                    continuing a steady upward trend with an
+                    <span style="font-size: 30px; color: #03b103">increase</span> of about
+                    <span style="font-size: 30px; color: #03b103">10.7%</span> over the 25–34 age group.
+                    This is one of the key phases for overall salary growth.
+                </p>
+            </p>
+        </div>
+        <div class="step" data-age="45-54 years old">
+            <p style="line-height: 2.5; width: 400px">
+                <span style="font-size: 30px">45–54 years old:</span>
+                <p style="line-height: 2.5; width: 400px">
+                    The average salary reaches <span style="font-size: 30px; color: #03b103">$118,631</span>,
+                    the second-highest among all age groups.
+                    Although the <span style="font-size: 30px; color: #03b103">growth</span> slows to about
+                    <span style="font-size: 30px; color: #03b103">3.1%</span>,
+                    it still shows a positive trend, indicating a certain level of salary stability.
+                </p>
+            </p>
+        </div>
+        <div class="step" data-age="55-64 years old">
+            <p style="line-height: 2.5; width: 400px">
+                <span style="font-size: 30px">55–64 years old:</span>
+                <p style="line-height: 2.5; width: 400px">
+                    In this group, the average salary is <span style="font-size: 30px; color: crimson">$115,123</span>,
+                    representing a slight <span style="font-size: 30px; color: crimson">decline</span> of around
+                    <span style="font-size: 30px; color: crimson">3.0%</span> from the previous stage.
+                    However, the average remains at a relatively high level,
+                    suggesting that senior programmers continue to hold strong market value.
+                </p>
+            </p>
+        </div>
+        <div class="step" data-age="65 years or older">
+            <p style="line-height: 2.5; width: 400px">
+                <span style="font-size: 30px">65 years or older:</span>
+            <p style="line-height: 2.5; width: 400px">
+                This group has the highest average salary of all, at <span style="font-size: 30px; color: steelblue">$125,914</span>,
+                with a <span style="font-size: 30px; color: #03b103">9.4% increase</span> compared to the 55–64 group.
+                Although the proportion of individuals in this category is small,
+                the data indicates that some programmers maintain high earnings even at an advanced age.
+            </p>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Rolling trigger (hidden) -->
+<div id="scroll-triggers" style="position: absolute; top: 0; left: -9999px;"></div>
+
+<script>
+    const ageOrder = [
+        "Under 18 years old",
+        "18-24 years old",
+        "25-34 years old",
+        "35-44 years old",
+        "45-54 years old",
+        "55-64 years old",
+        "65 years or older",
+        "Prefer not to say"
+    ];
+
+    // filter conditions
+    const mainBranchFilter = "I am a developer by profession";
+    const employmentFilter = [
+        "Employed, full-time",
+        "Employed, part-time",
+        "Independent contractor, freelancer, or self-employed"
+    ];
+    const excludeAges = ["Under 18 years old", "Prefer not to say"];
+
+    const ageRank = Object.fromEntries(ageOrder.map((age, i) => [age, i]));
+
+    // load data
+    d3.csv("data_csv/cleaned_Servey-result-q1_country_salary.csv").then(data => {
+
+        // data filter
+        const filtered = data.filter(d => {
+            return d.MainBranch === mainBranchFilter &&
+                !excludeAges.includes(d.Age) &&
+                employmentFilter.includes(d.Employment) &&
+                d.CompTotal && !isNaN(+d.CompTotal);
+        });
+
+        const grouped = {};
+        for (const row of filtered) {
+            const age = row.Age;
+            const salary = +row.CompTotal;
+            if (!grouped[age]) grouped[age] = [];
+            grouped[age].push(salary);
+        }
+
+        // The data of the line chart drawn by the user
+        const avgData = Object.entries(grouped)
+            .map(([age, salaries]) => ({
+                Age: age,
+                CompTotal: d3.mean(salaries)
+            }))
+            .filter(d => !excludeAges.includes(d.Age));
+
+        // Sort by age
+        avgData.sort((a, b) => ageRank[a.Age] - ageRank[b.Age]);
+
+        console.log("avgData=======", avgData)
+
+        // Convert the data into the data required for the waterfall chart
+        const waterfallData = prepareWaterfallData(avgData)
+        console.log("waterfallData = ", waterfallData)
+
+        // draw chart(waterfall chart)
+        drawChart(waterfallData);
+
+        // Placed after the chart drawing is completed (scrolling interaction initialization logic)
+        initScrollInteraction(avgData);
+    });
+
+
+    let xScale, yScale;
+
+    function drawChart(waterfallData) {
+        const svg = d3.select("svg");
+        const margin = { top: 50, right: 50, bottom: 80, left: 100 };
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        xScale = d3.scaleBand()
+            .domain(waterfallData.map(function(d) { return d.name; }))
+            .range([0, width])
+            .padding(0.2)
+            .round(true);// Enable the rounding function
+
+        yScale = d3.scaleLinear()
+            .domain([0, d3.max(waterfallData, function(d) { return d.end; })*1.1])
+            .range([height, 0]);
+
+        g.append("g")
+            .attr("id", "g-x")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).tickFormat((d) => d))
+            .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", "rotate(-30)")
+            .style("fill", "#fff");
+
+        // add y-axis
+        g.append("g")
+            .attr("id", "g-y")
+            .call(d3.axisLeft(yScale))
+            .selectAll("text")
+            .style("fill", "#666666");
+
+        // add y-axis label
+        g.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + 100)
+            .attr("y", -margin.left + 35)
+            .attr("text-anchor", "middle")
+            .attr("class", "axis-label")
+            .text("Average annual salary")
+            .style("fill", "#fff");
+
+        // create bars
+        const bars = g.selectAll(".bar")
+            .data(waterfallData)
+            .enter().append("g")
+            .attr("class", function(d) { return "bar " + d.class })
+            .attr("transform", function(d) { return "translate(" + xScale(d.name) + ",0)"; });
+
+        bars.append("rect")
+            .attr("x", (d, i) => xScale(i))
+            .attr("y", function(d) { return yScale( Math.max(d.start, d.end) ); })
+            .attr("width", xScale.bandwidth())
+            .attr("height", function(d) { return Math.abs( yScale(d.start) - yScale(d.end) ); })
+            .style("opacity", 0); // hide
+
+
+        // add money label
+        bars.append("text")
+            .attr("class", "value-label")
+            .attr("x", xScale.bandwidth() / 2)
+            .attr("y", function(d) {
+                return yScale(Math.max(d.start, d.end)) - 10; })
+            .attr("dy", ".75em")
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .attr("fill", d => {
+                if(d.start == 0 || d.class === "final"){
+                    // start and end bar
+                    return "steelblue"
+                }else{
+                    if(d.value >= 0){
+                        return "#03b103"
+                    }else{
+                        return "red"
+                    }
+                }
+            })
+            .style("opacity", 0) // hide
+            .text(function(d) { return dollarFormatter(d.end - d.start) + " 💰";});
+
+        // Add the grey dotted line between the bars
+        const padding = 0.3;
+        bars.filter(function(d) { return d.class != "total" }).append("line")
+            .attr("class", "connector")
+            .attr("x1", xScale.bandwidth() + 5 )
+            .attr("y1", function(d) { return yScale(d.end) } )
+            .attr("x2", xScale.bandwidth() / ( 1 - padding) - 5 )
+            .attr("y2", function(d) { return yScale(d.end) } )
+            .style("opacity", 0) // hide
+
+    }
+
+    // format dollar
+    function dollarFormatter(n) {
+        n = Math.round(n);
+        var result = n;
+        if (Math.abs(n) > 1000) {
+            result = Math.round(n/1000) + 'K';
+        }
+        return '$' + result;
+    }
+
+    function initScrollInteraction(data) {
+        const ageList = [
+            "18-24 years old",
+            "25-34 years old",
+            "35-44 years old",
+            "45-54 years old",
+            "55-64 years old",
+            "65 years or older"
+        ];
+
+        let currentIndex = -1;
+
+        function updateChartHighlight(index) {
+            const selectedAges = ageList.slice(0, index + 1);
+
+            // show bars
+            d3.selectAll(".bar")
+                .selectAll("rect")
+                .transition()
+                .duration(500)
+                .style("opacity", d => {
+                    return selectedAges.includes(d.name) ? 1 : 0;
+                });
+
+            // show labels
+            d3.selectAll(".bar")
+                .selectAll(".value-label")
+                .transition()
+                .duration(500)
+                .style("opacity", d => {
+                    return selectedAges.includes(d.name) ? 1 : 0;
+                });
+
+            // show lines
+            d3.selectAll(".bar")
+                .selectAll(".connector")
+                .transition()
+                .duration(500)
+                .style("opacity", (d, i) => {
+                    if(d.class !== "first" && d.class !== "final"){
+                        return selectedAges.includes(d.name) ? 1 : 0;
+                    }else if(d.class === "final"){
+                        return 0
+                    }
+                });
+        }
+
+        // set IntersectionObserver
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const age = entry.target.dataset.age;
+                    const index = ageList.indexOf(age);
+
+                    if (index >= 0 && index !== currentIndex) {
+                        currentIndex = index;
+                        updateChartHighlight(index);
+                        document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
+                        entry.target.classList.add("active");
+                    }
+                }
+            });
+        }, {
+            rootMargin: '0px 0px -30% 0px',
+            threshold: 0.1
+        });
+
+        document.querySelectorAll(".step").forEach(step => observer.observe(step));
+    }
+
+    // Convert avgData to the waterfall graph data format
+    function prepareWaterfallData(data) {
+        console.log("data: ", data)
+        const waterfallData = [];
+        let prevValue = data[0].CompTotal;
+
+        // initial data
+        waterfallData.push({
+            name: data[0].Age,
+            value: prevValue,
+            start: 0,
+            end: prevValue,
+            class: "first"
+        });
+
+        // middle data
+        for (let i = 1; i < data.length - 1; i++) {
+            const diff = data[i].CompTotal - data[i-1].CompTotal;
+
+            waterfallData.push({
+                name: data[i].Age,
+                value: diff,
+                start: data[i-1].CompTotal,
+                end: data[i].CompTotal,
+                class: diff < 0? "negative" : "positive"
+            });
+            prevValue = data[i].CompTotal;
+        }
+
+        // end data
+        prevValue = data[data.length - 1].CompTotal;
+        const endLavel = data[data.length - 1].Age
+        waterfallData.push({
+            name: endLavel,
+            start: 0,
+            end: prevValue,
+            class: "final",
+            value: prevValue,
+        });
+
+        return waterfallData;
+    }
+
+    // load beginning
+    window.addEventListener("load", () => {
+        // scroll to the first step（18-24）
+        const firstStep = document.querySelector(".step[data-age='18-24 years old']");
+        if (firstStep) {
+            firstStep.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+
+
+
+</script>
+
+</body>
+</html>

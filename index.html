@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>programmer crisis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            /*overflow: hidden;*/
+            overflow: auto; /* Allow scrolling */
+            font-family: sans-serif;
+            color: white;
+        }
+
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background-color: #000000;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding-top: 25vh;
+        }
+
+        .highlight_green {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
+        }
+
+        .last_section {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #ccc;
+        }
+
+        section {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease;
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .highlight {
+            color: #ffdb4d;
+            font-weight: bold;
+        }
+
+        .age-select {
+            margin-top: 2rem;
+        }
+
+        .age-select button {
+            margin: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #666;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .age-select button:hover {
+            background-color: #ffdb4d;
+            color: #111;
+        }
+
+        /*Halo effect*/
+        .circle-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            clip-path: circle(0% at center);
+            z-index: 9999;
+            transition: clip-path 1.5s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circle-transition.active {
+            clip-path: circle(150% at center); /* Spread out from the center */
+        }
+
+        .content-wrapper {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 1s ease;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .circle-transition.show-content .content-wrapper {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+    </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<!-- Section 1: Resonance -->
+<section id="sec1">
+    <div>
+        <h1 class="highlight_green">“<span class="highlight">At 35</span>, should I leave programming?”</h1>
+        <p style="margin-bottom: 20px;">“At this age, you shouldn’t be coding anymore.”</p>
+        <p style="margin-top: 20px; margin-bottom: 20px;">“You should think about moving into management.”</p>
+        <p style="margin-top: 20px; margin-bottom: 20px;">Online discussions about the
+            “<span class="highlight">35-year-old crisis</span>”
+            among programmers have made countless developers anxious and uneasy.
+        </p>
+    </div>
+</section>
+
+<!-- Section 2: Problem introduction -->
+<section id="sec2">
+    <div>
+        <h1 class="highlight_green">But do these claims <span class="highlight">really hold true?</span></h1>
+        <p style="margin-bottom: 20px;">Is it a midlife crisis that most programmers face?</p>
+        <p style="margin-top: 20px; margin-bottom: 20px;">Or are isolated cases being blown out of proportion?</p>
+        <p style="margin-top: 20px; margin-bottom: 20px;">Is it about “outdated skills”? “physical decline”? Or a “gender dilemma”?</p>
+    </div>
+</section>
+
+<!-- Section 3: Project goals + Interaction -->
+<section id="sec3">
+    <div>
+        <h1 class="last_section">This project uses <span class="highlight">data and visualization</span></h1>
+        <p style="font-size: 30px">to help you see clearly: Is the 35-year-old programmer crisis </br>
+            a <span class="highlight">real challenge</span> or an <span class="highlight">exaggerated fear</span>?
+        </p>
+
+        <div class="age-select">
+            <p style="font-size: 30px"><strong>Are you ready?</strong></p>
+            <button style="font-size: 20px" onclick="getStart('start')">start</button>
+        </div>
+    </div>
+</section>
+
+<!-- Aperture animation layer -->
+<div id="circleTransition" class="circle-transition" style="width: 100%; height: 100%">
+    <div class="content-wrapper" style="width: 100%; height: 100%;">
+
+        <iframe id="dynamicChart" src="DVP.html"
+                width="105%" height="100%"
+                style="border:none; transform: translateX(-3%);">
+
+        </iframe>
+    </div>
+</div>
+
+
+<script>
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+
+    // Set the canvas size to the window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Create a character array (which can be letters, numbers, Chinese characters, etc.)
+    const letters = "keywords.forEach(function(keyword) {\n" +
+        "            keyword.addEventListener('click', function() {\n" +
+        "                const chartId = this.getAttribute('data-chart');\n" +
+        "\n" +
+        "                const src = chartSources[chartId];\n" +
+        "\n" +
+        "                if (src) {\n" +
+        "                    iframe.src = src;\n" +
+        "\n" +
+        "                    // 显示 iframe\n" +
+        "                    iframe.style.display = 'block';\n" +
+        "                }\n" +
+        "            });\n" +
+        "        });";
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize); // 列数
+
+    // Record the position of the next character in each column
+    const drops = Array(columns).fill(1);
+
+    function draw() {
+        // The black semi-transparent background creates a trailing effect
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#0F0";
+        ctx.font = fontSize + "px monospace";
+
+        for (let i = 0; i < drops.length; i++) {
+            const text = letters.charAt(Math.floor(Math.random() * letters.length));
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            // Random reset or continue to fall
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+
+            drops[i]++;
+        }
+    }
+
+    setInterval(draw, 33); // About 30 frames per second
+
+    // Update the canvas size when the window changes
+    window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    // The animation logic appears by scrolling
+    const sections = document.querySelectorAll("section");
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+            }
+        });
+    }, { threshold: 0.3 });
+
+    sections.forEach(sec => observer.observe(sec));
+
+    function getStart(ageRange) {
+
+        localStorage.setItem("selectedAgeRange", ageRange);
+
+        // 1. hide all section
+        document.querySelectorAll("section").forEach(sec => sec.style.display = "none");
+
+        // 2. Stop the text rain animation
+        stopMatrixAnimation();
+
+        // 3. Display the aperture animation
+        const circleTransition = document.getElementById("circleTransition");
+        circleTransition.classList.add("active");
+
+        // 4. New content is displayed after the animation ends
+        setTimeout(() => {
+            circleTransition.classList.add("show-content");
+        }, 1000); // Wait for the aperture diffusion to complete before displaying the content
+    }
+
+    let matrixInterval = null;
+
+    // Start the animation at startup
+    matrixInterval = setInterval(draw, 33);
+
+    // Stop the animation function
+    function stopMatrixAnimation() {
+        if (matrixInterval) {
+            clearInterval(matrixInterval);
+            matrixInterval = null;
+        }
+    }
+</script>
+
+
+</body>
+</html>

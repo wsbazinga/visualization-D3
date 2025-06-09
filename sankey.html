@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Age to Career Shift Sankey Diagram</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- sankey -->
+    <script src="https://unpkg.com/d3-array@1"></script>
+    <script src="https://unpkg.com/d3-collection@1"></script>
+    <script src="https://unpkg.com/d3-path@1"></script>
+    <script src="https://unpkg.com/d3-shape@1"></script>
+    <script src="https://unpkg.com/d3-sankey@0"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .step {
+            margin: 700px 0;
+            font-size: 18px;
+            color: white;
+        }
+
+        /*Make the animation effect smoother*/
+        text, path, rect {
+            transition: all 0.3s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="scrolly-container" style="display: flex;">
+
+    <!-- left chart area -->
+    <div class="sankey" style="position: sticky; top: 0px; height: 500px;">
+        <h2 style="color: #a3a3a3">Career Shift by Age Group</h2>
+
+        <svg id="chart" width="800" height="420"></svg>
+    </div>
+
+    <!-- text description area -->
+    <div id="text" style="margin-left: 30px;">
+        <div class="step" data-age="18-24 years old">
+            <span style="font-size: 30px">18-24 years old:</span>
+            <p style="width: 400px">
+                Most programmers are <span style="color: #356693; font-size: 30px">Developer, full-stack</span>
+                or <span style="color: #c77437; font-size: 30px">Developer, back-end</span>,
+                both relatively high-paying roles. Many are still
+                <span style="color: #a5352f; font-size: 30px">Student</span>.
+                During this period, most people were engaged in <span style="color: rgb(255,251,0); font-size: 30px">basic development positions</span>.
+            </p>
+        </div>
+        <div class="step" data-age="25-34 years old">
+            <span style="font-size: 30px">25–34 years old:</span>
+            <p style="width: 400px">
+                <span style="color: #356693; font-size: 30px">Developer, full-stack</span> and
+                <span style="color: #c77437; font-size: 30px">Developer, back-end</span> increase and become mainstream.
+                Roles like <span style="color: #c77437; font-size: 30px">Data scientist or machine learning specialist</span>
+                and <span style="color: #698438; font-size: 30px">Data engineer</span> emerge,
+                showing interest in data fields.
+                Career choices are more mature and start leaning toward
+                <span style="color: rgb(255,251,0); font-size: 30px">management</span> and
+                <span style="color: rgb(255,251,0); font-size: 30px">advanced tech roles</span>.
+            </p>
+        </div>
+        <div class="step" data-age="35-44 years old">
+            <span style="font-size: 30px">35–44 years old:</span>
+            <p style="width: 400px">
+                Many programmers begin shifting from core development to roles like
+                <span style="color: #a5352f; font-size: 30px">Engineering manager</span> and
+                <span style="color: #4c9dab; font-size: 30px">Research & Development role</span>.
+                <span style="color: #356693; font-size: 30px">Developer, full-stack</span> and
+                <span style="color: #c77437; font-size: 30px">Developer, back-end</span> still lead.
+                This stage shows a split: some move into <span style="color: rgb(255,251,0); font-size: 30px">management</span>,
+                others stay on the <span style="color: rgb(255,251,0); font-size: 30px">technical path</span>.
+            </p>
+        </div>
+        <div class="step" data-age="45-54 years old">
+            <span style="font-size: 30px">45–54 years old:</span>
+            <p style="width: 400px">
+                Programmers remain active in
+                <span style="color: #356693; font-size: 30px">Developer, full-stack</span>
+                and <span style="color: #c77437; font-size: 30px">Developer, back-end</span> roles,
+                but more shift to <span style="color: #a5352f; font-size: 30px">Engineering manager</span>
+                and <span style="color: #9d628e; font-size: 30px">Senior Executive (C-Suite, VP, etc.)</span>.
+                <span style="color: rgb(255,251,0); font-size: 30px">Technical roles decrease</span>.
+            </p>
+        </div>
+        <div class="step" data-age="55-64 years old">
+            <span style="font-size: 30px">55–64 years old:</span>
+            <p style="width: 400px">
+                As careers near the end, the number of programmers drops.
+                <span style="color: #356693; font-size: 30px">Developer, full-stack</span> and
+                <span style="color: #c77437; font-size: 30px">Developer, back-end</span> still
+                <span style="color: rgb(255,251,0); font-size: 30px">lead</span> but
+                <span style="color: rgb(255,251,0); font-size: 30px">shrink</span>.
+                More shift to
+                <span style="color: rgb(255,251,0); font-size: 30px">senior management positions</span>.
+            </p>
+        </div>
+        <div class="step" data-age="65 years or older">
+            <span style="font-size: 30px">65 years or older:</span>
+            <p style="width: 400px">
+                Very few programmers remain active at this stage, mostly in
+                <span style="color: #356693; font-size: 30px">Developer, full-stack</span>, and
+                <span style="color: #c77437; font-size: 30px">Developer, back-end</span>.
+                Those still coding are <span style="color: rgb(255,251,0); font-size: 30px">experienced tech veterans</span>.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ageOrder = [
+        "18-24 years old",
+        "25-34 years old",
+        "35-44 years old",
+        "45-54 years old",
+        "55-64 years old",
+        "65 years or older"
+    ];
+
+    // MainBranch filter conditions
+    const mainBranchFilter = [
+        "I am a developer by profession",
+        "I am not primarily a developer, but I write code sometimes as part of my work/studies",
+        "I used to be a developer by profession, but no longer am"
+    ];
+
+    const employmentExclude = [
+        "Student, full-time",
+        "Student, part-time",
+        "Retired",
+        "I prefer not to say"
+    ];
+
+    const devTypeExclude = [
+        "Other (please specify):"
+    ]
+
+    // load csv data
+    async function loadData() {
+        const data = await d3.csv("data_csv/cleaned_Servey-result-q1_country_salary.csv");
+        const filtered = data.filter(d =>
+            // Step 1: data filter
+            mainBranchFilter.includes(d.MainBranch) && ageOrder.includes(d.Age)
+            && !employmentExclude.includes(d.Employment) && !devTypeExclude.includes(d.DevType)
+        );
+
+        drawSankey(filtered);
+    }
+
+
+    function drawSankey(filtered) {
+        // Step 2: Build the statistics of age → DevType
+        const transitionMap = {};
+
+        filtered.forEach(d => {
+            const age = d.Age;
+            const devType = d.DevType;
+
+            if (!transitionMap[age]) transitionMap[age] = {};
+            if (!transitionMap[age][devType]) transitionMap[age][devType] = 0;
+            transitionMap[age][devType]++;
+        });
+
+        // top 10 position
+        const topTransitionMap = {};
+
+        for (const age in transitionMap) {
+            const devTypes = Object.entries(transitionMap[age])
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 10); // 取 Top 10
+
+            topTransitionMap[age] = devTypes;
+        }
+
+        console.log("topTransitionMap:........", topTransitionMap)
+
+        // Step 3: create sankey data
+        const nodes = [];
+        const links = [];
+
+        // Add age nodes
+        ageOrder.forEach(age => {
+            if (topTransitionMap[age]) {
+                nodes.push({ name: age });
+            }
+        });
+
+        // Add professional nodes & links
+        Object.keys(topTransitionMap).forEach(age => {
+            topTransitionMap[age].forEach(item => {
+                const devType = item.name;
+                const count = item.value;
+
+                // Add professional nodes
+                if (!nodes.some(n => n.name === devType)) {
+                    nodes.push({ name: devType });
+                }
+
+                // get index
+                const sourceIndex = nodes.findIndex(n => n.name === age);
+                const targetIndex = nodes.findIndex(n => n.name === devType);
+
+                links.push({
+                    source: sourceIndex,
+                    target: targetIndex,
+                    value: count
+                });
+            });
+        });
+
+        // Step 4: create sankey
+        const svg = d3.select("svg");
+
+        // The coordinate range of the node completely covers the entire SVG area
+        // to avoid node misalignment caused by margin shrinking the canvas.
+        const width = +svg.attr("width");
+        const height = +svg.attr("height");
+
+        const sankey = d3.sankey()
+            .nodeWidth(15)
+            .nodePadding(10)
+            .extent([[1, 1], [width - 1, height - 6]])
+
+        const { nodes: sankeyNodes, links: sankeyLinks } = sankey({
+            nodes: [...nodes.map(d => Object.assign({}, d))],
+            links: [...links.map(d => Object.assign({}, d))]
+        });
+
+        // Use the built-in color scheme of D3
+        const colorMap = d3.scaleOrdinal(d3.schemeCategory10);
+
+        svg.append("g")
+            .attr("fill", "none")
+            .attr("stroke", "#000")
+            .attr("stroke-opacity", 0.2)
+            .selectAll("path")
+            .data(sankeyLinks)
+            .enter().append("path")
+            .attr("d", d3.sankeyLinkHorizontal())// 设置路径
+            .attr("stroke-width", d => Math.max(1, d.width))
+            .attr("stroke", d => colorMap(d.target.name)); // 根据目标节点的名字上色
+
+        // create node
+        const node = svg.append("g")
+            .attr("fill", "#fff")
+            .attr("stroke", "#000")
+            .attr("stroke-opacity", 0.8)
+            .selectAll(".node")
+            .data(sankeyNodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+        node.append("rect")
+            .attr("height", d => d.y1 - d.y0)
+            .attr("width", d => d.x1 - d.x0)
+            .attr("fill", "#868383")
+            .attr("stroke", "#999");
+
+        node.append("text")
+            .attr("x", d => d.x0 < width / 2 ? (d.x1 - d.x0) + 16 : -16)  // 左侧在右边显示，右侧在左边显示
+            .attr("y", d => (d.y1 - d.y0) / 2)     // 垂直居中
+            .attr("dy", "0.35em")                  // 微调对齐字体高度
+            .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")  // 对齐方式匹配位置
+            .attr("fill", "#868383")
+            .attr("stroke", "none")
+            .text(d => d.name);
+
+        highlightSetup(sankeyNodes, sankeyLinks);
+        setupScrollHighlight(sankeyNodes);
+    }
+
+    loadData();
+
+    // === Step A: Add "data-name" or "data-source-name" to all nodes and links for convenient query ===
+    function highlightSetup(sankeyNodes, sankeyLinks) {
+        d3.selectAll(".node text")
+            .attr("data-name", d => d.name);
+
+        d3.selectAll(".node rect")
+            .attr("data-name", d => d.name);
+
+        // add data-source-name for all path
+        d3.select("svg").selectAll("path")
+            .attr("data-source-name", d => sankeyNodes[d.source.index].name);
+    }
+
+    // === Step B: define highlight function ===
+    function highlightNodeAndLinks(ageName, sankeyNodes) {
+        // 1. highlight node text(left age)
+        d3.selectAll(".node text")
+            .filter(d => d.name === ageName)
+            .classed("highlighted", true)
+            .attr("fill", "#000000")
+            .attr("font-weight", "bold");
+
+        // highlight bar
+        d3.selectAll(".node rect")
+            .filter(d => d.name === ageName)
+            .attr("fill", "rgb(255,251,0)");
+
+        d3.selectAll("path")
+            .filter(d => sankeyNodes[d.source.index].name === ageName)
+            .attr("stroke-width", d => d.width * 1.5)
+            .attr("stroke-opacity", 0.8);
+
+        const targetNames = d3.selectAll("path")
+            .filter(d => sankeyNodes[d.source.index].name === ageName)
+            .data()
+            .map(d => sankeyNodes[d.target.index].name);
+
+
+        // De-duplication (avoid duplicate highlighting)
+        const uniqueTargetNames = [...new Set(targetNames)];
+
+
+        // 3. Highlight the target node (occupation on the right)
+        d3.selectAll(".node text")
+            //.filter(d => uniqueTargetNames.includes(d.name))
+            .filter(d =>{
+                const isMatch = uniqueTargetNames.includes(d.name);
+                return isMatch;
+            })
+            .classed("highlighted", true)
+            .style("fill", "#000")
+            .style("font-weight", "bold");
+
+        d3.selectAll(".node rect")
+            .filter(d => uniqueTargetNames.includes(d.name))
+            .style("fill", "rgb(255,251,0)");
+    }
+
+    // === Step C: Define the function for removing highlighting ===
+    function unhighlightNodeAndLinks(ageName, sankeyNodes, stillHighLight) {
+        d3.selectAll(".node text")
+            .filter(d => d.name === ageName)
+            .classed("highlighted", false)
+            .attr("fill", "#868383")
+            .attr("font-weight", "normal");
+
+        d3.selectAll(".node rect")
+            .filter(d => d.name === ageName)
+            .attr("fill", "#868383");
+
+        d3.selectAll("path")
+            .filter(d => sankeyNodes[d.source.index].name === ageName)
+            .attr("stroke-width", d => Math.max(1, d.width))
+            .attr("stroke-opacity", 0.2);
+
+        const targetNames = d3.selectAll("path")
+            .filter(d => sankeyNodes[d.source.index].name === ageName)
+            .data()
+            .map(d => sankeyNodes[d.target.index].name);
+
+        const uniqueTargetNames = [...new Set(targetNames)];
+
+        d3.selectAll(".node text")
+            .filter(d => uniqueTargetNames.includes(d.name))
+            .classed("highlighted", false)
+            .style("fill", "#868383")
+            .style("font-weight", "normal");
+
+        d3.selectAll(".node rect")
+            .filter(d => uniqueTargetNames.includes(d.name))
+            .style("fill", "#868383");
+    }
+
+    // === Step D: Initialize the Intersection Observer to listen for scrolling ===
+    let currentlyVisibleAges = new Set();
+
+    function setupScrollHighlight(sankeyNodes) {
+        const steps = document.querySelectorAll(".step");
+
+        const observer = new IntersectionObserver((entries) => {
+            let changed = false;
+
+            entries.forEach(entry => {
+                const ageName = entry.target.getAttribute("data-age");
+
+                if (entry.isIntersecting) {
+                    if (!currentlyVisibleAges.has(ageName)) {
+                        currentlyVisibleAges.add(ageName);
+                        changed = true;
+                    }
+                } else {
+                    if (currentlyVisibleAges.has(ageName)) {
+                        currentlyVisibleAges.delete(ageName);
+                        changed = true;
+                    }
+                }
+            });
+
+            if (changed) {
+                updateHighlights(Array.from(currentlyVisibleAges), sankeyNodes);
+            }
+        }, {
+            rootMargin: '0px 0px -30% 0px',
+            threshold: 0.1
+        });
+
+        steps.forEach(step => observer.observe(step));
+    }
+
+    function updateHighlights(visibleAgeNames, sankeyNodes) {
+
+        // === 1. All nodes and paths are restored to their default states first ===
+        d3.selectAll(".node text")
+            .classed("highlighted", false)
+            .attr("fill", "#868383")
+            .attr("font-weight", "normal");
+
+        d3.selectAll(".node rect")
+            .attr("fill", "#868383");
+
+        d3.selectAll("path")
+            .attr("stroke-width", d => Math.max(1, d.width))
+            .attr("stroke-opacity", 0.2);
+
+        // === 2. Re-highlight all ages in the viewport ===
+        const targetSet = new Set();
+
+        visibleAgeNames.forEach(ageName => {
+            d3.selectAll(".node text")
+                .filter(d => d.name === ageName)
+                .classed("highlighted", true)
+                .attr("fill", "#fff")
+                .attr("font-weight", "bold");
+
+            d3.selectAll(".node rect")
+                .filter(d => d.name === ageName)
+                .attr("fill", "rgb(255,251,0)");
+
+            // highlight path
+            d3.selectAll("path")
+                .filter(d => sankeyNodes[d.source.index].name === ageName)
+                .attr("stroke-width", d => d.width * 1.5)
+                .attr("stroke-opacity", 0.8)
+                .each(d => {
+                    targetSet.add(sankeyNodes[d.target.index].name);
+                });
+
+        });
+
+        console.log("targetSet-----------", targetSet)
+
+        d3.selectAll(".node text")
+            .filter(d => targetSet.has(d.name))
+            .classed("highlighted", true)
+            .attr("fill", "#fff")
+            .attr("font-weight", "bold");
+
+        d3.selectAll(".node rect")
+            .filter(d => targetSet.has(d.name))
+            .attr("fill", "rgb(255,251,0)");
+    }
+
+
+    // load beginning
+    window.addEventListener("load", () => {
+        // scroll the first step（18-24）
+        const firstStep = document.querySelector(".step[data-age='18-24 years old']");
+        if (firstStep) {
+            firstStep.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+
+</script>
+</body>
+</html>

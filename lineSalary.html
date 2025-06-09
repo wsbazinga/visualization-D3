@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Salary by Age (D3.js)</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            /*background-color: navajowhite;*/
+        }
+        .line {
+            fill: none;
+            stroke: #747f87;
+            stroke-width: 2px;
+        }
+        .axis-label {
+            font-size: 14px;
+        }
+
+        .step {
+            margin: 700px 0;
+            font-size: 18px;
+            color: white;
+        }
+
+        .graphic {
+            width: 800px;
+            height: 500px;
+        }
+
+        .text {
+            width: 300px;
+        }
+
+        /* ========== style of x-axis ========== */
+
+        /* x-axis */
+        #g-x .domain {
+            stroke: #fff;
+        }
+
+        /* X-axis scale line */
+        #g-x .tick line {
+            stroke: #fff;
+        }
+
+        /* ========== style of y-axis ========== */
+
+        /* y-axis */
+        #g-y .domain {
+            stroke: #666666;
+        }
+
+        /* y-axis scale line */
+        #g-y .tick line {
+            stroke: #666666;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="scrolly-container" style="display: flex;">
+
+    <!-- left chart area -->
+    <div class="graphic" style="position: sticky; top: 0px; height: 500px;">
+        <h2 style="color: #a3a3a3; margin-bottom: -10px">Programmer Workforce by Age Group</h2>
+
+        <svg id="chart" width="800" height="480"></svg>
+    </div>
+
+    <!-- Text description area -->
+    <div id="text" style="margin-left: 30px;">
+        <div class="step" data-age="18-24 years old">
+            <p style="line-height: 2.5; width: 400px">
+                Among the <span style="font-size: 30px">23,111</span> programmers surveyed,
+                only 1,340 were <span style="font-size: 30px">aged 18–24</span>,
+                accounting for approximately <span style="font-size: 30px; color: #03b103">5.8%</span> of the total.
+                The data suggests that programmers in this stage represent a smaller segment within the overall professional landscape.
+            </p>
+        </div>
+        <div class="step" data-age="25-34 years old">
+            <p style="line-height: 2.5; width: 400px">
+                The <span style="font-size: 30px">25–34 age group</span> making up approximately
+                <span style="font-size: 30px; color: #03b103">25.6%</span> of the total 23,111 surveyed.
+                This segment represents <span style="font-size: 30px; color: #03b103">the largest</span>
+                share among all age groups, indicating that early to mid-career professionals form the core of the programming workforce.
+            </p>
+        </div>
+        <div class="step" data-age="35-44 years old">
+            <p style="line-height: 2.5; width: 400px">
+                The <span style="font-size: 30px">35–44 age group</span> includes 4,382 programmers,
+                accounting for approximately 19% of the total sample of 23,111.
+                Although the number <span style="font-size: 30px; color: #03b103">declines</span> compared to the previous age group,
+                this segment still represents a significant portion of the professional population.
+            </p>
+        </div>
+        <div class="step" data-age="45-54 years old">
+            <p style="line-height: 2.5; width: 400px">
+                Among the 23,111 surveyed programmers,
+                1,772 individuals are <span style="font-size: 30px">aged 45–54</span>,
+                accounting for approximately 7.7% of the total.
+                Compared to the younger age groups, this segment shows
+                <span style="font-size: 30px; color: #03b103">a continued decline</span>
+                in workforce representation, indicating a smaller proportion of programmers remain active in this age range.
+            </p>
+        </div>
+        <div class="step" data-age="55-64 years old">
+            <p style="line-height: 2.5; width: 400px">
+                Among the 23,111 surveyed programmers,
+                627 individuals are <span style="font-size: 30px">aged 55–64</span>,
+                representing approximately 2.7% of the total.
+                This age group shows <span style="font-size: 30px; color: #03b103">a further decrease</span> in representation,
+                reflecting a continued downward trend in the number of active programmers as age increases.
+            </p>
+        </div>
+        <div class="step" data-age="65 years or older">
+            <p style="line-height: 2.5; width: 400px">
+                Among the 23,111 surveyed programmers,
+                only 69 individuals are <span style="font-size: 30px">aged 65 years or older</span>,
+                accounting for approximately 0.3% of the total.
+                This age group constitutes <span style="font-size: 30px; color: #03b103">the smallest</span> portion of the dataset.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ageOrder = [
+        "Under 18 years old",
+        "18-24 years old",
+        "25-34 years old",
+        "35-44 years old",
+        "45-54 years old",
+        "55-64 years old",
+        "65 years or older",
+        "Prefer not to say"
+    ];
+
+    // filter conditions
+    const mainBranchFilter = "I am a developer by profession";
+    const employmentFilter = [
+        "Employed, full-time",
+        "Employed, part-time",
+        "Independent contractor, freelancer, or self-employed"
+    ];
+    const excludeAges = ["Under 18 years old", "Prefer not to say"];
+
+    // Create a mapping for sorting ages
+    const ageRank = Object.fromEntries(ageOrder.map((age, i) => [age, i]));
+
+    // read data
+    d3.csv("data_csv/cleaned_Servey-result-q1_country_salary.csv").then(data => {
+
+        // data filter
+        const filtered = data.filter(d => {
+            return d.MainBranch === mainBranchFilter &&
+                !excludeAges.includes(d.Age) &&
+                employmentFilter.includes(d.Employment) &&
+                d.CompTotal && !isNaN(+d.CompTotal);
+        });
+
+        // Group by Age and calculate the number of employed people
+        const grouped = {};
+        for (const row of filtered) {
+            const age = row.Age;
+            if (!grouped[age]) grouped[age] = 0;
+            grouped[age]++;
+        }
+
+        // The data of the line chart drawn by the user
+        const avgData = Object.entries(grouped)
+            .map(([age, count]) => ({
+                Age: age,
+                Count: count
+            }))
+            .filter(d => !excludeAges.includes(d.Age));
+
+        // Sort by age
+        avgData.sort((a, b) => ageRank[a.Age] - ageRank[b.Age]);
+
+        drawChart(avgData);
+
+        initScrollInteraction(avgData);
+    });
+
+    // Define the scale globally：
+    let xScale, yScale;
+
+    function drawChart(data) {
+        const svg = d3.select("svg");
+        const margin = { top: 50, right: 50, bottom: 80, left: 100 };
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Initialization: X-axis scale
+        xScale = d3.scalePoint()
+            .domain(data.map(d => d.Age))
+            .range([0, width])
+            .padding(1);
+
+        // Initialization: Y-axis scale
+        yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.Count)]).nice()
+            .range([height, 0]);
+
+        const line = d3.line()
+            .x(d => xScale(d.Age))
+            .y(d => yScale(d.Count));
+
+        // add line
+        g.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "#666666")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+
+        // add circle
+        g.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", d => xScale(d.Age))
+            .attr("cy", d => yScale(d.Count))
+            .attr("r", 4)
+            .attr("fill", "#666666");
+
+        // Add the scale age on the X-axis
+        g.append("g")
+            .attr("id", "g-x")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale))
+            .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", "rotate(-30)")
+            .style("fill", "#fff");
+
+        // Add the Y-axis scale number
+        g.append("g")
+            .attr("id", "g-y")
+            .call(d3.axisLeft(yScale))
+            .selectAll("text")
+            .style("fill", "#666666");
+
+
+        // add y-axis label
+        g.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + 70)
+            .attr("y", -margin.left + 35)
+            .attr("text-anchor", "middle")
+            .attr("class", "axis-label")
+            .text("Number of Employed Developers")
+            .style("fill", "#fff");
+
+        g.append("path")
+            .attr("id", "highlight-path")
+            .attr("fill", "none")
+            .attr("stroke", "#03b103")
+            .attr("stroke-width", 2);
+
+        // Add the specific number of employed people text on the dot
+        g.selectAll("text.value-label")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("class", "value-label")
+            .attr("x", d => xScale(d.Age))
+            .attr("y", d => yScale(d.Count) - 10)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .attr("fill", "#03b103")
+            .style("display", "none")
+            .text(d => `${d.Count} 👤`);
+    }
+
+    // Rolling interaction initialization logic
+    function initScrollInteraction(data) {
+        const ageList = [
+            "18-24 years old",
+            "25-34 years old",
+            "35-44 years old",
+            "45-54 years old",
+            "55-64 years old",
+            "65 years or older"
+        ];
+
+        let currentIndex = -1;
+
+        function updateChartHighlight(index) {
+            const selectedAges = ageList.slice(0, index + 1);
+            console.log("updateChartHighlight............")
+
+            // update circle color
+            d3.selectAll("circle")
+                .transition()
+                .duration(500)
+                .attr("fill", d => selectedAges.includes(d.Age) ? "#03b103" : "#666666");
+
+            d3.selectAll("text.value-label")
+                .style("display", d => selectedAges.includes(d.Age) ? "block" : "none");
+
+            const highlightLine = d3.line()
+                .x(d => xScale(d.Age))
+                .y(d => yScale(d.Count));
+
+            const highlightData = data.filter(d => selectedAges.includes(d.Age));
+
+            d3.select("#highlight-path")
+                .datum(highlightData)
+                .transition()
+                .duration(500)
+                .attr("d", highlightLine);
+        }
+
+        // set IntersectionObserver
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                console.log("........scroll")
+                console.log("entry.isIntersecting = ", entry.isIntersecting)
+
+                if (entry.isIntersecting) {
+                    const age = entry.target.dataset.age;
+                    const index = ageList.indexOf(age);
+                    if (index >= 0 && index !== currentIndex) {
+                        currentIndex = index;
+                        updateChartHighlight(index);
+                        document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
+                        entry.target.classList.add("active");
+                    }
+                }
+            });
+        }, {
+            rootMargin: '0px 0px -30% 0px',
+            threshold: 0.1
+        });
+
+        document.querySelectorAll(".step").forEach(step => observer.observe(step));
+    }
+
+    window.addEventListener("load", () => {
+        const firstStep = document.querySelector(".step[data-age='18-24 years old']");
+        console.log("firstStep===========", firstStep)
+
+        if (firstStep) {
+            firstStep.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+
+
+
+</script>
+
+</body>
+</html>
