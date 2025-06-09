@@ -308,19 +308,23 @@
             .style("opacity", 0) // hide
             /* add mouse over tooltip */
             .on("mouseover", function(event, d) {
-                    const changeText = d.start === 0 || d.class === "final"
-                        ? "" // 如果是第一个或最后一个柱子，不显示变化
-                        : (d.value >= 0 ? "+" : "") + dollarFormatter(d.value);
+                // The tooltip is displayed only when the column is visible
+                const currentOpacity = d3.select(this).style("opacity");
+                if (parseFloat(currentOpacity) === 0) return;
 
-                    d3.select("#tooltip")
-                        .style("opacity", 1)
-                        .html(`
+                const changeText = d.start === 0 || d.class === "final"
+                    ? "" // If it is the first or the last column, no change is shown
+                    : (d.value >= 0 ? "+" : "") + dollarFormatter(d.value);
+
+                d3.select("#tooltip")
+                    .style("opacity", 1)
+                    .html(`
                         <strong>Age Group:</strong> ${d.name}<br>
                         <strong>Average annual salary:</strong> ${dollarFormatter2(d.end)}<br>
                         ${changeText ? `<strong>Change from Previous:</strong> ${changeText} 💰` : ""}
                     `)
-                        .style("left", (event.pageX + 10) + "px")
-                        .style("top", (event.pageY - 30) + "px");
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 30) + "px");
                 })
             .on("mousemove", function(event) {
                 d3.select("#tooltip")
